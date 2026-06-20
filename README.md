@@ -1,6 +1,6 @@
 # RenPy Image Positioning Tool
 
-##When creating small visual novels with RenPy, I repeatedly ran into the problem of having to estimate exact image ##parameters such as the X and Y positions, the zoom factor, and the angle. Constantly reloading the script is very ##time-consuming on large projects and therefore inconvenient.
+#When creating small visual novels with RenPy, I repeatedly ran into the problem of having to estimate exact image ##parameters such as the X and Y positions, the zoom factor, and the angle. Constantly reloading the script is very ##time-consuming on large projects and therefore inconvenient.
 
 ##With the “Renpy Image Positioning Tool”, you can load up to 30 images as layers. These can then be moved, rotated, ##mirrored, and zoomed as desired using a user-friendly menu. The layers can be modified both individually and ##collectively.
 
