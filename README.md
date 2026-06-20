@@ -17,5 +17,4 @@
 
 ### The complete program can be downloaded via the link on Patreon.
 
-### Download the Image Positioning Tool on Patreon: 
-https://www.patreon.com/OtterSoft/posts/image-tool-161592075
+### Download the Image Positioning Tool on Patreon: \nhttps://www.patreon.com/OtterSoft/posts/image-tool-161592075
