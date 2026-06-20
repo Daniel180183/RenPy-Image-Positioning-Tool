@@ -1,4 +1,4 @@
-# $\color{red}RenPy Image Positioning Tool
+$\color{red}RenPy Image Positioning Tool
 
 ## When creating small visual novels with RenPy, I repeatedly ran into the problem of having to estimate exact image  parameters such as the X and Y positions, the zoom factor, and the angle. Constantly reloading the script is very time-consuming on large projects and therefore inconvenient.
 
