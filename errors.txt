@@ -1,0 +1,10 @@
+﻿I'm sorry, but errors were detected in your script. Please correct the
+errors listed below, and try again.
+
+
+File "game/scripts/developer_menu.rpy", line 1188: 'action' is not a keyword argument or valid child of the screen statement.
+    action Function("resize_image_move", 0.00)
+          ^
+
+Ren'Py Version: Ren'Py 8.5.3.26051504
+Sun Sep 20 18:31:36 2026
