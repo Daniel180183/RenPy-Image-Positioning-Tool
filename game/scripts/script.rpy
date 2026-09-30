@@ -12,6 +12,7 @@ label start:
 
     # Here begins your game script.
 
+    "New GitHub line"
     "line 1"
     "line 2"
     "line 3"
