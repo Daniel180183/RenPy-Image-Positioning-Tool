@@ -14,6 +14,7 @@ label start:
 
     "New GitHub line"
     "Second GitHub test"
+    "Third GitHub test"
     "line 1"
     "line 2"
     "line 3"
