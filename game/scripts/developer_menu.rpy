@@ -290,6 +290,7 @@ transform move_to_left:
     xalign 1.0
     ease 0.5 xalign 0.0
 
+
     # def get_scale_button_center(button_id):
     #
     #     # Ermittelt das Zentrum eines der beiden Skalierungsbuttons
@@ -439,6 +440,8 @@ default last_location_input = "images/"
 default cursor_lines = []
 default last_text_cursor_lines = ""
 
+default test_var = False
+
 
 # transform move_to_right:
 #     xalign 0.0
@@ -514,6 +517,8 @@ screen variable_monitoring():
             label "keep_image_move: [keep_image_move]" text_font ipt_font text_size 12 xmaximum 300 xfill True yoffset 2
 
             label "image_move_menu_startet: [image_move_menu_startet]" text_font ipt_font text_size 12 xmaximum 300 xfill True yoffset 2
+
+            label "test_var: [test_var]" text_font ipt_font text_size 12 xmaximum 300 xfill True yoffset 2
 
 init python:
     def get_ui_scale_print():
@@ -833,7 +838,7 @@ init python:
 # ============================================================
 # SCREEN
 # ============================================================
-
+Debug-Konsole überarbeiten.
 
 screen mini_console():
     zorder 1000
@@ -1151,33 +1156,41 @@ screen show_data_pos_file(file_content):
 
 
 screen image_move_hidden():
-    textbutton "{color=#4f7649}Show image move menu" action [
-        Function(save_dev_menu),
-        Function(update_layers_max),
-        Function(load_move_values),
-        Hide("image_move_hidden", Dissolve(0.2)),
-        Show("image_move")
-    ] text_font ipt_font text_size 12
+    zorder 100
 
-    label "{[project_name_color]}[project_name]   v[project_version]{/color}" at right text_font ipt_font
+    if ipt_show_hidden_button:
+        textbutton "{color=#4f7649}Show image move menu{/color}" action [
+                Function(save_dev_menu),
+                Function(update_layers_max),
+                Function(load_move_values),
+                Hide("image_move_hidden", transition=Dissolve(0.2)),
+                SetVariable("ipt_show_hidden_button", False),
+                Show("image_move")
+            ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
 
-    textbutton "{color=#4f7649}Return to main menu" action [
-        MainMenu(confirm = False)
-    ] at topright text_font ipt_font text_size 12
+    if ipt_show_hidden_button:
+        label "{[project_name_color]}[project_name]   v[project_version]{/color}" xalign 1.0 yalign 1.0 text_size 18
+
+    if ipt_show_hidden_button:
+        textbutton "{color=#4f7649}Return to main menu" action [
+            MainMenu(confirm = False)
+        ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
 
 
 screen return_move_menu():
+    zorder 100
+
     textbutton "{color=#4f7649}Return to image move menu" action [
         SetVariable("hide_current_menu", False),
         Hide("return_move_menu", Dissolve(0.2)),
         Show("image_move")
-    ] text_font ipt_font text_size 12
+    ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
 
-    label "{[project_name_color]}[project_name]   v[project_version] {/color}" at right text_font ipt_font
+    label "{[project_name_color]}[project_name]   v[project_version] {/color}"  xalign 1.0 yalign 1.0 text_size 18
 
     textbutton "{color=#4f7649}Return to main menu" action [
         MainMenu(confirm = False)
-    ] at topright text_font ipt_font text_size 12
+    ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
 
 
 screen wait_enter_only():
@@ -1489,13 +1502,6 @@ init python:
         last_text_cursor_lines = location_input
 
 
-style image_parameters_buttons_text:
-    size 13
-    xalign 0.0
-    yalign 0.5
-    text_align 0.0
-
-
 screen image_move_restart():
     timer 0.01 action [
         Hide("image_move"),
@@ -1531,7 +1537,8 @@ screen image_move():
         ]
 
     frame:
-        padding(0, 0)
+        background Solid("#2e4a2a")
+        padding(4, 2)
 
         if reload_image_move:
             yalign 0.0
@@ -1595,15 +1602,22 @@ screen image_move():
                                     and not delete_query_data_pos_file
                                     and not show_stop_message
                                     and not show_current_image_parameters):
+
+                                    null height 2
+
                                     textbutton "Rotate left ( {b}[rotate_var]{/b} )" action [
                                         SetVariable("rotate_var", rotate_var - rotate_range),
                                         Jump("restart_image")
-                                    ] xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
 
                                     textbutton "Rotate right ( {b}[rotate_var]{/b} )" action [
                                         SetVariable("rotate_var", rotate_var + rotate_range),
                                         Jump("restart_image")
-                                    ] xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
 
                                     if (not show_input_frame
                                         and not image_loading_error
@@ -1614,7 +1628,9 @@ screen image_move():
                                         textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" action [
                                             SetVariable("zoom_var", zoom_var + zoom_range),
                                             Jump("restart_image")
-                                        ] xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                        ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                        null height 2
 
                                     if (show_input_frame
                                         and not image_loading_error
@@ -1622,7 +1638,9 @@ screen image_move():
                                         and not delete_query_data_pos_file
                                         and not show_stop_message
                                         and not show_current_image_parameters):
-                                        textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                        textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                        null height 2
 
                                     if (not show_input_frame
                                         and not image_loading_error
@@ -1632,7 +1650,9 @@ screen image_move():
                                         and not show_current_image_parameters):
                                         textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" action [
                                             SetVariable("zoom_var", zoom_var - zoom_range), Jump("restart_image")
-                                        ] xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                        ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                        null height 2
 
                                     if (show_input_frame
                                         and not image_loading_error
@@ -1640,24 +1660,32 @@ screen image_move():
                                         and not delete_query_data_pos_file
                                         and not show_stop_message
                                         and not show_current_image_parameters):
-                                        textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                        textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                        null height 2
 
                                     textbutton "Xalign +   ( {b}[xalign_var:.2f]{/b} )" action [
                                         SetVariable("xalign_var", xalign_var + xalign_range),
                                         Jump("restart_image")
-                                    ] xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
 
                                     textbutton "Xalign -   ( {b}[xalign_var:.2f]{/b} )" action [
                                         SetVariable("xalign_var", xalign_var - xalign_range),
                                         Jump("restart_image")
-                                    ] xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
 
                                     textbutton "Yalign +   ( {b}[yalign_var:.2f]{/b} )" action [ SetVariable("yalign_var", yalign_var + yalign_range), Jump("restart_image")
-                                    ] xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
 
                                     textbutton "Yalign -   ( {b}[yalign_var:.2f]{/b} )" action [
                                         SetVariable("yalign_var", yalign_var - yalign_range), Jump("restart_image")
-                                    ] xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
 
                                 if (layer == -1
                                     or show_input_frame
@@ -1666,24 +1694,44 @@ screen image_move():
                                     or delete_query_data_pos_file
                                     or show_stop_message
                                     or show_current_image_parameters):
-                                    textbutton "Rotate left ( {b}[rotate_var]{/b} )" xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
 
-                                    textbutton "Rotate right ( {b}[rotate_var]{/b} )" xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    null height 2
 
-                                    textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    textbutton "Rotate left ( {b}[rotate_var]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
 
-                                    textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    null height 2
 
-                                    textbutton "Xalign +   ( {b}[xalign_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0  text_font ipt_font
+                                    textbutton "Rotate right ( {b}[rotate_var]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
 
-                                    textbutton "Xalign -   ( {b}[xalign_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    null height 2
 
-                                    textbutton "Yalign +   ( {b}[yalign_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
 
-                                    textbutton "Yalign -   ( {b}[yalign_var:.2f]{/b} )" xsize 224 text_size 16 text_xalign 0.0 text_font ipt_font
+                                    null height 2
+
+                                    textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
+
+                                    textbutton "Xalign +   ( {b}[xalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
+
+                                    textbutton "Xalign -   ( {b}[xalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
+
+                                    textbutton "Yalign +   ( {b}[yalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
+
+                                    null height 2
+
+                                    textbutton "Yalign -   ( {b}[yalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 224 ysize 22
 
                             vbox:
+
                                 hbox:
+                                    null width 2
+
                                     vbox:
                                         if (not show_input_frame
                                             and not image_loading_error
@@ -1691,21 +1739,32 @@ screen image_move():
                                             and not delete_query_data_pos_file
                                             and not show_stop_message
                                             and not show_current_image_parameters):
+
+                                            null height 2
+
                                             textbutton " + " action [
                                                 SetVariable("rotate_range", rotate_range + 1)
-                                            ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                             textbutton " + " action [
                                                 SetVariable("zoom_range", zoom_range + 0.01)
-                                            ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                             textbutton " + " action [
                                                 SetVariable("xalign_range", xalign_range + 0.01)
-                                            ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                             textbutton " + " action [
                                                 SetVariable("yalign_range", yalign_range + 0.01)
-                                            ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                         if (show_input_frame
                                             or image_loading_error
@@ -1713,47 +1772,80 @@ screen image_move():
                                             or delete_query_data_pos_file
                                             or show_stop_message
                                             or show_current_image_parameters):
-                                            textbutton " + " xsize 24 ysize 41 text_size 16 text_font ipt_font
 
-                                            textbutton " + " xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            null height 2
 
-                                            textbutton " + " xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            textbutton " + " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
 
-                                            textbutton " + " xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            null height 2
+
+                                            textbutton " + " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
+
+                                            textbutton " + " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
+
+                                            textbutton " + " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                    null width 2
 
                                     vbox:
+                                        null height 2
                                         if (not show_input_frame
                                             and not image_loading_error
                                             and not delete_query
                                             and not delete_query_data_pos_file
                                             and not show_stop_message
                                             and not show_current_image_parameters):
+
                                             textbutton " Rotate range: {b}[rotate_range]{/b}" action [
                                                 Jump("input_rotate")
-                                            ] xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
+
+                                            null height 2
 
                                             textbutton " Zoom range: {b}[zoom_range:.2f]{/b}" action [
                                                 Jump("input_zoom")
-                                            ] xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
+
+                                            null height 2
 
                                             textbutton " Xalign range: {b}[xalign_range:.2f]{/b}" action [
                                                 Jump("input_xalign")
-                                            ] xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
+
+                                            null height 2
 
                                             textbutton " Yalign range: {b}[yalign_range:.2f]{/b}" action [
                                                 Jump("input_yalign")
-                                            ] xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
+
+                                            null height 2
 
                                         else:
-                                            textbutton " Rotate range: {b}[rotate_range]{/b}" xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            textbutton " Rotate range: {b}[rotate_range]{/b}" style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
 
-                                            textbutton " Zoom range: {b}[zoom_range:.2f]{/b}" xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            null height 2
 
-                                            textbutton " Xalign range: {b}[xalign_range:.2f]{/b}" xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            textbutton " Zoom range: {b}[zoom_range:.2f]{/b}" style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
 
-                                            textbutton " Yalign range: {b}[yalign_range:.2f]{/b}" xsize 144 ysize 41 text_size 16 text_font ipt_font
+                                            null height 2
 
+                                            textbutton " Xalign range: {b}[xalign_range:.2f]{/b}" style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
+
+                                            null height 2
+
+                                            textbutton " Yalign range: {b}[yalign_range:.2f]{/b}" style "ipt_button" text_style "ipt_button_text" xsize 144 ysize 40
+
+                                            null height 2
+
+                                    null width 2
                                     vbox:
+
+                                        null height 2
+
                                         if (not show_input_frame
                                             and not image_loading_error
                                             and not delete_query
@@ -1762,20 +1854,28 @@ screen image_move():
                                             and not show_current_image_parameters):
                                             textbutton " - " action [
                                                     SetVariable("rotate_range", rotate_range - 1), Jump("image_loop")
-                                                ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                             textbutton " - " action [
                                                     SetVariable("zoom_range", zoom_range - 0.01),
                                                     Jump("image_loop")
-                                                ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                             textbutton " - " action [
                                                     SetVariable("xalign_range", xalign_range - 0.01), Jump("image_loop")
-                                                ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                             textbutton " - " action [
                                                     SetVariable("yalign_range", yalign_range - 0.01), Jump("image_loop")
-                                                ] xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
 
                                         if (show_input_frame
                                             or image_loading_error
@@ -1783,15 +1883,25 @@ screen image_move():
                                             or delete_query_data_pos_file
                                             or show_stop_message
                                             or show_current_image_parameters):
-                                            textbutton " - " xsize 24 ysize 41 text_size 16 text_font ipt_font
 
-                                            textbutton " - " xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            textbutton " - " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
 
-                                            textbutton " - " xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            null height 2
 
-                                            textbutton " - " xsize 24 ysize 41 text_size 16 text_font ipt_font
+                                            textbutton " - " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
+
+                                            textbutton " - " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
+
+                                            null height 2
+
+                                            textbutton " - " style "ipt_pm_button" text_style "ipt_button_text" xsize 24 ysize 40
 
                                 hbox:
+                                    null height 2
+                                    null width 2
+
                                     if (layer != -1
                                         and not show_input_frame
                                         and not image_loading_error
@@ -1808,14 +1918,16 @@ screen image_move():
                                                     SetVariable("h_flip", False),
                                                     SetVariable("keep_image_move", True),
                                                     Jump("restart_image")
-                                                ] xsize 96 ysize 20 text_size 14 text_font ipt_font
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 97 ysize 22 text_size 14
 
                                             else:
                                                 textbutton "{color=#4f7649}Flip h" action [
                                                     SetVariable("h_flip", True),
                                                     SetVariable("keep_image_move", True),
                                                     Jump("restart_image")
-                                                ] xsize 96 ysize 20 text_size 14 text_font ipt_font
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 97 ysize 22 text_size 14
+
+                                        null width 2
 
                                         if current_layer != -1:
                                             if v_flip:
@@ -1823,24 +1935,28 @@ screen image_move():
                                                     SetVariable("v_flip", False),
                                                     SetVariable("keep_image_move", True),
                                                     Jump("restart_image")
-                                                ] xsize 96 ysize 20 text_size 14 text_font ipt_font
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 97 ysize 22 text_size 14
 
                                             else:
                                                 textbutton "{color=#4f7649}Flip v" action [
                                                     SetVariable("v_flip", True),
                                                     SetVariable("keep_image_move", True),
                                                     Jump("restart_image")
-                                                ] xsize 96 ysize 20 text_size 14 text_font ipt_font
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 97 ysize 22 text_size 14
 
                                     else:
-                                        textbutton "Flip h" xsize 96 ysize 20 text_size 14 text_font ipt_font
-                                        textbutton "Flip v" xsize 96 ysize 20 text_size 14 text_font ipt_font
 
-                        null height 10
+                                        textbutton "Flip h" style "ipt_button" text_style "ipt_button_text" xsize 97 ysize 22 text_size 14
 
-                        label "{color=0a2bb5}Estimated maximum number of layers: [layers_max]" text_size 16 at center text_font ipt_font
+                                        null width 2
 
-                        null height 04
+                                        textbutton "Flip v" style "ipt_button" text_style "ipt_button_text" xsize 97 ysize 22 text_size 14
+
+                        null height 2
+
+                        textbutton "{color=0a2bb5}Estimated maximum number of layers: [layers_max]" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         hbox:
                             if (not show_input_frame
@@ -1854,7 +1970,8 @@ screen image_move():
                                 textbutton "{color=#4f7649}Image size:\nWidth = [image_width] | Height = [image_height]\nBytes / pixel = [image_bytes_pixel]" action [
                                     SetVariable("keep_image_move", True),
                                     Jump("input_image_size")
-                                ] xsize 260 ysize 60 text_style "image_parameters_buttons_text" text_font ipt_font
+                                ] style "ipt_button" text_style "ipt_button_text" xsize 260 ysize 60
+                                null width 2
 
                             if (not show_input_frame
                                 and not show_stop_message
@@ -1868,7 +1985,7 @@ screen image_move():
                                 textbutton "{color=#4f7649}Get parameters\nof the last\nloaded image." action [
                                     SetVariable("keep_image_move", True),
                                     Jump("get_image_info")
-                                ] xsize 156 ysize 60 text_style "image_parameters_buttons_text" text_font ipt_font
+                                ] style "ipt_button" text_style "ipt_button_text" xsize 160 ysize 60
 
                             if (show_input_frame
                                 or image_loading_error
@@ -1877,7 +1994,8 @@ screen image_move():
                                 or show_stop_message
                                 or show_invalid_float_message
                                 or show_current_image_parameters):
-                                textbutton "{color=#4f7649}Image size:\nWidth = [image_width] | Height = [image_height]\nBytes / pixel = [image_bytes_pixel]" xsize 260 ysize 60 text_style "image_parameters_buttons_text" text_font ipt_font
+                                textbutton "{color=#4f7649}Image size:\nWidth = [image_width] | Height = [image_height]\nBytes / pixel = [image_bytes_pixel]" style "ipt_button" text_style "ipt_button_text" xsize 260 ysize 60
+                                null width 2
 
                             if (show_input_frame
                                 or image_loading_error
@@ -1887,13 +2005,13 @@ screen image_move():
                                 or show_invalid_float_message
                                 or show_current_image_parameters
                                 or layer == -1):
-                                textbutton "{color=#4f7649}Get parameters\nof the last\nloaded image." xsize 156 ysize 60 text_style "image_parameters_buttons_text" text_font ipt_font
+                                textbutton "{color=#4f7649}Get parameters\nof the last\nloaded image." style "ipt_button" text_style "ipt_button_text" xsize 160 ysize 60
 
-                        null height 10
+                        null height 2
 
-                        label "{color=0a2bb5}Number of active layers: [layer + 1]" text_size 16 xalign 0.5 text_font ipt_font
+                        textbutton "{color=0a2bb5}Number of active layers: [layer + 1]" style "ipt_button" text_style "ipt_button_text" xsize 422
 
-                        null height 4
+                        null height 2
 
                         if (move_layers_simultan
                             and not show_input_frame
@@ -1906,9 +2024,11 @@ screen image_move():
                             textbutton "{color=#4f7649}Move layers simultaneously: on" action [
                                 SetVariable("move_layers_simultan", False),
                                 SetVariable("selected_layer", 0)
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
-                            textbutton "Move layers individually: off" xsize 416 text_size 16 text_font ipt_font
+                            null height 2
+
+                            textbutton "Move layers individually: off" style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (move_layers_simultan
                             and (show_input_frame
@@ -1918,9 +2038,11 @@ screen image_move():
                                 or show_stop_message
                                 or show_invalid_float_message
                                 or show_current_image_parameters)):
-                                textbutton "{color=#4f7649}Move layers simultaneously: off" xsize 416 text_size 16 text_font ipt_font
+                                textbutton "{color=#4f7649}Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422
 
-                                textbutton "Move layers individually: off" xsize 416 text_size 16 text_font ipt_font
+                                null height 2
+
+                                textbutton "Move layers individually: off" style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (not move_layers_simultan
                             and not show_input_frame
@@ -1930,13 +2052,15 @@ screen image_move():
                             and not show_stop_message
                             and not show_invalid_float_message
                             and not show_current_image_parameters):
-                            textbutton "Move layers simultaneously: off" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                            null height 2
 
                             textbutton "{color=#4f7649}Move layers individually: on" action [
                                 SetVariable("move_layers_simultan", True),
                                 Hide("image_loading_error"),
                                 SetVariable("image_found", False)
-                            ] xsize 416 text_size 16 text_font ipt_font
+                                ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (not move_layers_simultan
                             and (show_input_frame
@@ -1946,9 +2070,13 @@ screen image_move():
                                 or show_stop_message
                                 or show_invalid_float_message
                                 or show_current_image_parameters)):
-                                textbutton "Move layers simultaneously: off" xsize 416 text_size 16 text_font ipt_font
+                                textbutton "Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422
 
-                                textbutton "Move layers individually: off" xsize 416 text_size 16 text_font ipt_font
+                                null height 2
+
+                                textbutton "Move layers individually: off" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         if (layer != -1
                             and not move_layers_simultan
@@ -1963,7 +2091,7 @@ screen image_move():
                                 Hide("image_loading_error"),
                                 SetVariable("image_found", False),
                                 Jump("restart_layer_counter")
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (layer != -1
                             and (show_input_frame
@@ -1973,14 +2101,16 @@ screen image_move():
                                 or show_stop_message
                                 or show_invalid_float_message
                                 or show_current_image_parameters)):
-                                textbutton "Selected layer: [selected_layer + 1]" xsize 416 text_size 16 text_font ipt_font
+                                textbutton "Selected layer: [selected_layer + 1]" style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if layer == -1:
-                            textbutton "No layer loaded" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "No layer loaded" style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (layer != -1
                             and move_layers_simultan):
-                            textbutton "All layers selected" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "All layers selected" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         if (not move_layers_simultan
                             and not show_input_frame
@@ -1998,7 +2128,7 @@ screen image_move():
                                 SetVariable("image_loading_error", False),
                                 SetVariable("keep_image_move", True),
                                 Jump("input_image")
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (move_layers_simultan
                             or show_input_frame
@@ -2008,7 +2138,9 @@ screen image_move():
                             or show_stop_message
                             or show_invalid_float_message
                             or show_current_image_parameters):
-                            textbutton "Input file location" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Input file location" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         if (layer > -1
                             and not show_input_frame
@@ -2026,7 +2158,7 @@ screen image_move():
                                 SetVariable("delete_query", True),
                                 SetVariable("stop_loading_layers", False),
                                 SetVariable("keep_image_move", True),
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (layer == -1
                             or show_input_frame
@@ -2036,7 +2168,9 @@ screen image_move():
                             or show_stop_message
                             or show_invalid_float_message
                             or show_current_image_parameters):
-                            textbutton "Delete layer(s)" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Delete layer(s)" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         if (not show_input_frame
                             and layer > -1
@@ -2049,8 +2183,9 @@ screen image_move():
                             textbutton "{color=#cb1e1e}Continue game and delete image(s){/color}" action [
                                 SetVariable("keep_image_move", True),
                                 SetVariable("delete_mode", "continue"),
-                                SetVariable("delete_query", True)
-                            ] xsize 416 text_size 16 text_font ipt_font
+                                SetVariable("delete_query", True),
+                                SetVariable("ipt_show_hidden_button", True)
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (not show_input_frame
                             and layer == -1
@@ -2063,8 +2198,9 @@ screen image_move():
                             textbutton "{color=#4f7649}Continue game" action [
                                 SetVariable("keep_image_move", True),
                                 SetVariable("move_into_screen", False),
+                                SetVariable("ipt_show_hidden_button", True),
                                 Jump("load_dev_menu_save")
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (show_input_frame
                             or image_loading_error
@@ -2073,7 +2209,9 @@ screen image_move():
                             or show_stop_message
                             or show_invalid_float_message
                             or show_current_image_parameters):
-                            textbutton "Continue game" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Continue game" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         if (not show_saving
                             and layer > -1
@@ -2089,7 +2227,7 @@ screen image_move():
                                 SetVariable("delete_mode", "continue"),
                                 SetVariable("show_saving", True),
                                 Jump("anim_progress_bar")
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (layer == -1
                             or show_input_frame
@@ -2099,7 +2237,7 @@ screen image_move():
                             or show_stop_message
                             or show_invalid_float_message
                             or show_current_image_parameters):
-                            textbutton "Save layer data" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Save layer data" style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (show_saving
                             and not show_input_frame
@@ -2132,6 +2270,8 @@ screen image_move():
                                         size 14
                                         font ipt_font
 
+                        null height 2
+
                         if (not persistent.data_position_file
                             and not show_input_frame
                             and not image_loading_error
@@ -2140,7 +2280,7 @@ screen image_move():
                             and not show_stop_message
                             and not show_invalid_float_message
                             and not show_current_image_parameters):
-                            textbutton "Delete layer data" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Delete layer data" style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (persistent.data_position_file
                             and not show_deleting
@@ -2154,7 +2294,7 @@ screen image_move():
                             textbutton "{color=#4f7649}Delete layer data" action [
                                 SetVariable("keep_image_move", True),
                                 SetVariable("delete_query_data_pos_file", True)
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (show_input_frame
                             or image_loading_error
@@ -2163,7 +2303,7 @@ screen image_move():
                             or show_stop_message
                             or show_invalid_float_message
                             or show_current_image_parameters):
-                            textbutton "Delete layer data" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Delete layer data" style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if (persistent.data_position_file
                             and show_deleting
@@ -2197,6 +2337,8 @@ screen image_move():
                                         size 14
                                         font ipt_font
 
+                        null height 2
+
                         if (not show_input_frame
                             and not image_loading_error
                             and not delete_query
@@ -2209,16 +2351,18 @@ screen image_move():
                                 Hide("message_delete_layers"),
                                 Hide("locationput"),
                                 SetVariable("hide_current_menu", True)
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         else:
-                            textbutton "Hide current menu" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "Hide current menu" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         if not slide_image_move_menu_right:
                             textbutton "{color=#4f7649}Menu on the right" action [
                                 SetVariable("slide_image_move_menu_right", True)#,
                                 #SetVariable("keep_image_move", False)
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         if slide_image_move_menu_right:
                             textbutton "{color=#4f7649}Menu on the left" action [
@@ -2226,7 +2370,9 @@ screen image_move():
                                 SetVariable("slide_image_move_menu_right", False),
                                 SetVariable("variable_monitoring_startet", False),
                                 SetVariable("keep_image_move", False)
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                        null height 2
 
                         if (persistent.data_position_file
                             and not show_input_frame
@@ -2241,37 +2387,49 @@ screen image_move():
                                 Hide("image_move"),
                                 Hide("image_move_hidden"),
                                 Jump("show_layer_pos_txt")
-                            ] xsize 416 text_size 16 text_font ipt_font
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422
 
                         else:
-                            textbutton "{color=#4f7649}Show saved layer data" xsize 416 text_size 16 text_font ipt_font
+                            textbutton "{color=#4f7649}Show saved layer data" style "ipt_button" text_style "ipt_button_text" xsize 422
+
+                    null width 2
 
                     vbox:
+                        null height 2
+
                         textbutton "{color=#4f7649}+":
-                            #id "image_move_scale_plus"
                             action [
                                 Function(resize_image_move, + 0.01)
-                            ] xsize 20 ysize 132
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 20 ysize 111
+
+                        null height 2
 
                         fixed:
                             xsize 20
-                            ysize 300
+                            ysize 299
 
-                            textbutton "{color=#4f7649}Menu Scaling" xsize 300 xpos -140 ysize 20 text_size 16 text_font ipt_font at rotate_label_90_left
+                            textbutton "{color=#4f7649}Menu Scaling" style "ipt_button" text_style "ipt_center_button_text" xsize 300 ysize 20 at rotate_label_90_left
+
+                        null height 2
 
                         textbutton "{color=#4f7649}-":
-                            #id "image_move_scale_minus"
                             action [
                                 Function(resize_image_move, - 0.01)
-                            ] xsize 20 ysize 132
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 20 ysize 111
+
+                null height 2
 
                 textbutton "{color=#4f7649}Open/Close Console (SHIFT + F1)" action [
                         ToggleVariable("mini_console_open")
-                    ] xsize 436 text_size 16 text_font ipt_font
+                    ] style "ipt_button" text_style "ipt_button_text" xsize 444
+
+                null height 2
 
                 if show_input_frame:
                     frame:
-                        xsize 436
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 444
                         ysize 150
                         xalign 0.5
                         textbutton "{color=4f7649}Return" action [
@@ -2291,32 +2449,32 @@ screen image_move():
                           SetVariable("show_invalid_float_message", False),
                           SetVariable("show_current_image_parameters", False),
                           Jump("image_loop")
-                        ] xalign 1.0 yalign 1.0 text_size 16 text_font ipt_font
+                        ] xalign 1.0 yalign 1.0 text_size 16 style "ipt_text"
 
                         vbox:
                             if show_file_input:
-                                text "Please enter the folder path and file name, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the folder path and file name, then press Enter:" size 18 font ipt_font
 
                             if show_rotate_input:
-                                text "Please enter the rotate range, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the rotate range, then press Enter:" size 18 font ipt_font
 
                             if image_width_entered:
-                                text "Please enter the image width, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the image width, then press Enter:" size 18 font ipt_font
 
                             if image_height_entered:
-                                text "Please enter the image height, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the image height, then press Enter:" size 18 font ipt_font
 
                             if  image_by_pi_entered:
-                                text "Please enter the bytes per pixel, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the bytes per pixel, then press Enter:" size 18 font ipt_font
 
                             if show_zoom_input:
-                                text "Please enter the zoom range, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the zoom range, then press Enter:" size 18 font ipt_font
 
                             if show_xalign_input:
-                                text "Please enter the xalign range, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the xalign range, then press Enter:" size 18 font ipt_font
 
                             if show_yalign_input:
-                                text "Please enter the yalign range, then press Enter:" size 18 font ipt_font
+                                text "{color=4f7649}Please enter the yalign range, then press Enter:" size 18 font ipt_font
 
                             # Anzeige im Input-Frame mit Cursor
                             if show_file_input:
@@ -2332,7 +2490,7 @@ screen image_move():
                                     text "[get_display_text()]":
                                         size 16
                                         font ipt_font
-                                        color "#fff57d"
+                                        color "#0a2bb5"
                                         xmaximum 553
 
                                     # Sichtbare Cursordarstellung
@@ -2366,7 +2524,7 @@ screen image_move():
                                         allow "0, 1, 2, 3, 4, 5, 6, 7, 8, 9"
                                         length 4
                                         size 16
-                                        color "#ecee1d"
+                                        color "#0a2bb5"
 
                                 if image_by_pi_entered:
                                     id "number_input"
@@ -2375,7 +2533,7 @@ screen image_move():
                                     allow "0, 1, 2, 3, 4, 5, 6, 7, 8, 9"
                                     length 3
                                     size 16
-                                    color "#ecee1d"
+                                    color "#0a2bb5"
 
                                 if (show_input_frame
                                     and (show_zoom_input
@@ -2388,12 +2546,16 @@ screen image_move():
                                         length 4
                                         exclude "{}"
                                         size 16
-                                        color "#ecee1d"
+                                        color "#0a2bb5"
 
                 if image_loading_error:
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
-                        xsize 436 ysize 150 at center
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 444
+                        ysize 150
+                        at center
 
                         label "{color=#cb1e1e}{b}Image file not found.{/b}\n\nPlease enter the correct folder path and the file name, including the file extension.\n\nSupported file types: png, jpg, jpeg, webp, avif, svg" text_size 16
 
@@ -2404,7 +2566,12 @@ screen image_move():
                 if delete_query:
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
-                        xsize 436 ysize 150 at center
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 444
+                        ysize 150
+                        at center
+
                         vbox:
                             xalign 0.5
                             ypos 15
@@ -2413,7 +2580,6 @@ screen image_move():
 
                             hbox:
                                 xalign 0.5
-                                yalign 0.5
                                 ypos 40
                                 spacing 100
 
@@ -2437,7 +2603,12 @@ screen image_move():
                 if delete_query_data_pos_file:
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
-                        xsize 436 ysize 150
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 444
+                        ysize 150
+                        at center
+
                         vbox:
                             xalign 0.5
                             ypos 15
@@ -2446,8 +2617,7 @@ screen image_move():
 
                             hbox:
                                 xalign 0.5
-                                yalign 0.5
-                                ypos 40
+                                ypos 25
                                 spacing 100
 
                                 textbutton "{color=#cb1e1e}Yes" xsize 50 text_size 16 action [
@@ -2464,7 +2634,12 @@ screen image_move():
                 if show_stop_message:
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
-                        xsize 436 ysize 150
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 444
+                        ysize 150
+                        at center
+
                         vbox:
                             xalign 0.5
                             ypos 15
@@ -2480,7 +2655,12 @@ screen image_move():
                 if show_invalid_float_message:
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
-                        xsize 436 ysize 150
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 444
+                        ysize 150
+                        at center
+
                         vbox:
                             xalign 0.5
                             ypos 15
@@ -2495,7 +2675,12 @@ screen image_move():
                 if show_current_image_parameters:
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
-                        xsize 436 ysize 150
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 444
+                        ysize 150
+                        at center
+
                         vbox:
                             ypos 15
                             label "{color=0a2bb5}Parameters of the last loaded image:\n" text_size 16
@@ -2516,6 +2701,8 @@ screen image_move():
                         textbutton "{color=#4f7649}Return" action [
                           SetVariable("show_current_image_parameters", False)
                         ] xalign 1.0 yalign 1.0 text_size 16
+
+                null height 2
 
 
 label image_loop:
@@ -3159,37 +3346,43 @@ label delete_layer_data:
 
 
 transform search_projects_menu_hide:
-    yoffset 100
+    yalign 0.12
 
 transform search_projects_menu_show:
-    yoffset 100
-    ease 0.3 yoffset 0
+    yalign 0.12
+    ease 0.3 yalign 0
 
 
 screen search_projects_menu():
     frame:
+        background Solid("#2e4a2a")
+        padding(4, 2)
         xalign 0.5
-        xsize 310
-        ysize 63
 
         if search_projects_menu_opened:
             at search_projects_menu_show
+
         else:
             at search_projects_menu_hide
 
         vbox:
             xalign 0.5
+            null height 2
 
             if not store.search_running:
                 textbutton "{color=#4f7649}Search for RenPy projects" action [
                     Hide("found_projects_screen", transition = Dissolve(0.2)),
                     Jump("search_projects"),
-                ] text_size 18 xalign 0.5 xsize 300 text_font ipt_font
+                ] style "ipt_button" text_style "ipt_center_button_text" xsize 300
+
+                null height 2
 
             if store.search_running:
                 textbutton "Cancel search" action [
                     Function(cancel_search)
-                ] text_size 18 xalign 0.5 xsize 300 text_font ipt_font
+                ] style "ipt_button" text_style "ipt_center_button_text" xsize 300
+
+                null height 2
 
             if not store.search_running:
                 textbutton "{color=#4f7649}Return" action [
@@ -3197,10 +3390,14 @@ screen search_projects_menu():
                     SetVariable("start_search_menu", False),
                     SetVariable("data_project_file", False),
                     MainMenu(confirm = False)
-                ] text_size 18 xalign 0.5 xsize 300 text_font ipt_font
+                ] style "ipt_button" text_style "ipt_center_button_text" xsize 300
+
+                null height 2
 
             if store.search_running:
-                textbutton "Return" text_size 18 xalign 0.5 xsize 300 text_font ipt_font
+                textbutton "Return" style "ipt_button" text_style "ipt_center_button_text" xsize 300
+
+                null height 2
 
     # Nach Animation laden
     if load_projects_after_slide:
@@ -3213,12 +3410,12 @@ screen search_projects_menu():
 
 screen found_projects_screen():
     frame:
-        xalign 0.5
-        ypos 63
+        background Solid("#2e4a2a")
+        ypos 48 xsize 800 ysize 552
+        padding(4, 4, 4, 4)
 
         fixed:
-            xsize 990
-            ysize 645
+            xsize 996 ysize 545
 
             viewport:
                 id "found_projects_viewport"
@@ -3227,18 +3424,20 @@ screen found_projects_screen():
 
                 vbox:
                     spacing 5
-
                     for project in found_project_buttons:
                         textbutton project["display"]:
-                            xsize 972
-                            text_size 18
+                            xsize 780
+                            style "ipt_button"
+                            text_style "ipt_button_text"
+
                             sensitive not message_window_open
                             action Function(project_clicked, project["path"])
 
             vbar:
                 value YScrollValue("found_projects_viewport")
-                xpos 980
+                xpos 785
                 xsize 8
+                ysize 545
 
                 thumb "#4f7649"
                 base_bar "#7ede69"
@@ -3263,7 +3462,7 @@ screen message_window(message):
 
                     vbox:
                         spacing 5
-                        text "[message]" size 18 xmaximum 520 font ipt_font
+                        text "[message]" style "ipt_text" xmaximum 520
 
                 vbar:
                     value YScrollValue("message_viewport")
@@ -3281,7 +3480,7 @@ screen message_window(message):
 
                     vbox:
                         spacing 5
-                        text "{color=#cd1e1e}{b}Could not load file:{/b}{/color}" size 18
+                        text "{color=#cd1e1e}{b}Could not load file:{/b}{/color}" size 18 font ipt_font
                         text "{color=#cd1e1e}[message]" size 18 xmaximum 520 font ipt_font
 
                 vbar:
@@ -3294,7 +3493,7 @@ screen message_window(message):
         textbutton "Close window" action [
             SetVariable("message_window_open", False),
             Hide("message_window", transition=Dissolve(0.2))
-        ] xpos 437 ypos 249 text_size 18
+        ] xpos 437 ypos 249 text_size 18 text_font ipt_font
 
 
 default search_progress = 0
@@ -3323,58 +3522,76 @@ screen search_progress():
     ]
 
     frame:
-        xalign 0.5 ypos 163 xsize 900 ysize 400
+        background Solid("#2e4a2a")
+        xalign 0.5 yalign 0.5 xsize 700 ysize 300
+        padding(4, 4, 4, 4)
         vbox:
             xalign 0.5
             frame:
-                xsize 820
-                background None
+                background Solid("84ec6e")
+                padding(4, 4, 4, 4)
                 hbox:
-                    text "[search_status] [collecting_dots]" size 20 font ipt_font
+                    text "[search_status] [collecting_dots]" style "ipt_text"
                     if not store.search_status == "\"label start:\" searching [collecting_dots]":
                         pass
 
                 text "\n\n\nSearch path: [store.search_current_path]":
-                    xmaximum 820
+                    xmaximum 680
+                    style "ipt_text"
 
                 text "\n\n\n\n\n\nSearch files: [search_current_file]":
-                    xmaximum 820
+                    xmaximum 680
+                    style "ipt_text"
 
                 frame:
-                    xalign 1.08 yalign 1.02
+                    background Solid("#2e4a2a")
+                    padding(4, 4)
+                    xalign 0.99 yalign 0.75
                     vbox:
                         if data_project_file:
                             textbutton "Show RenPy projects" action [
                                     SetVariable("search_projects_menu_opened", True),
                                     SetVariable("load_projects_after_slide", True),
                                     SetVariable("search_finished", True)
-                                ] text_size 18 xalign 0.5 xsize 310 text_font ipt_font
+                                ] style "ipt_button" text_style "ipt_center_button_text" xsize 260
 
                             textbutton "Delete RenPy projects data" action [
                                     SetVariable("data_project_file", False)
-                                ] text_size 18 xalign 0.5 xsize 310 text_font ipt_font
+                                ] style "ipt_button" text_style "ipt_center_button_text" xsize 260
 
                         if not data_project_file:
-                            textbutton "Show RenPy projects" text_size 18 xalign 0.5 xsize 310 text_font ipt_font
+                            textbutton "Show RenPy projects" style "ipt_button" text_style "ipt_center_button_text" xsize 260
 
-                            textbutton "Delete RenPy projects data" text_size 18 xalign 0.5 xsize 310 text_font ipt_font
+                            textbutton "Delete RenPy projects data" style "ipt_button" text_style "ipt_center_button_text" xsize 260
 
-    frame:
-        xalign 0.5 ypos 564 xsize 900 ysize 70
-        vbox:
-            xalign 0.5
-            bar:
-                value search_display_progress
-                range 100
-                xmaximum 800
+                frame:
+                    xalign 0.5 yalign 1.0 xsize 680 ysize 45
+                    vbox:
+                        xalign 0.5
+                        spacing 8
 
-            text "[int(search_display_progress)] %":
-                xalign 0.5 font ipt_font
+                        bar:
+                            value search_display_progress
+                            range 100
 
-        if search_finished:
-            timer 0.1 action [
-                Return()
-            ]
+                            # Farben definieren
+                            left_bar Solid("#2e4a2a")    # Gefüllter Fortschritt
+                            right_bar Solid("#4f7649")   # Ungefüllter Hintergrund
+
+                            # Dimensionen festlegen (wichtig, damit die Bar sichtbar wird)
+                            xsize 680
+                            ysize 20
+
+                            # Verhindert, dass der "Thumb" (Schieberegler) angezeigt wird
+                            thumb None
+
+                        text "[int(search_display_progress)] %":
+                            xalign 0.5 style "ipt_text"
+
+                    if search_finished:
+                        timer 0.1 action [
+                            Return()
+                        ]
 
 
 init python:
@@ -3709,35 +3926,100 @@ init python:
             renpy.transition(Dissolve(0.2))
             renpy.pause(hard = True)
 
+    # def project_clicked(project):
+    #     message = ""
+    #
+    #     try:
+    #         project_path = os.path.normpath(project)
+    #
+    #         if os.path.isfile(project_path):
+    #             # project ist bereits die Datei
+    #             script_file = project_path
+    #
+    #             # Normalerweise: .../game/script.rpy -> .../game
+    #             game_path = os.path.dirname(script_file)
+    #
+    #             # Falls die Datei in .../game/scripts liegt
+    #             if os.path.basename(game_path).casefold() == "scripts":
+    #                 game_path = os.path.dirname(game_path)
+    #
+    #         else:
+    #             # project ist ein Ordner
+    #             if os.path.basename(project_path).casefold() == "scripts":
+    #                 game_path = os.path.dirname(project_path)
+    #             else:
+    #                 game_path = project_path
+    #
+    #             script_file = os.path.join(
+    #                 game_path,
+    #                 "script.rpy"
+    #             )
+
+
     def project_clicked(project):
         message = ""
 
         try:
+            project_path = os.path.normpath(project)
 
-            # Der Button übergibt bereits den echten Dateipfad
-            script_path = project
+            # 1. Startpunkt festlegen & Basispfad bestimmen
+            if os.path.isfile(project_path):
+                current_dir = os.path.dirname(project_path)
+            else:
+                current_dir = project_path
 
-            if not os.path.exists(script_path):
+            # Falls wir uns bereits in 'game' oder einem Unterordner davon befinden,
+            # navigieren wir hoch bis zum eigentlichen 'game'-Ordner.
+            game_path = None
+            parts = current_dir.split(os.sep)
 
+            # Suchen nach dem Ordner 'game' in der Pfadstruktur
+            for i in range(len(parts) - 1, -1, -1):
+                if parts[i].casefold() == "game":
+                    game_path = os.sep.join(parts[: i + 1])
+                    break
+
+            # Falls 'game' nicht im Pfad enthalten ist, nehmen wir das übergebene Verzeichnis als Basis
+            if not game_path:
+                game_path = current_dir
+
+            # 2. Rekursiv nach der ersten .rpy-Datei innerhalb von game_path suchen
+            found_script = None
+            for root, dirs, files in os.walk(game_path):
+                for file in files:
+                    if file.casefold() == "script.rpy":
+                        found_script = os.path.join(root, file)
+                        break
+                if found_script:
+                    break
+
+            # 3. Überprüfung und Auswertung
+            if not found_script:
+                message = f"Keine .rpy-Datei in '{game_path}' oder deren Unterordnern gefunden."
+            else:
+                script_file = found_script
+                # game_path ist hier garantiert auf das Hauptverzeichnis /game festgelegt
+                print(f"Game-Pfad: {game_path}")
+                print(f"Gefundene Skript-Datei: {script_file}")
+
+            if not os.path.isfile(script_file):
                 message = (
-                    "File not found:\n{}".format(script_path)
+                    "Datei nicht gefunden:\n{}"
+                    .format(script_file)
                 )
 
             else:
-
-                # script.rpy lesen
-                # utf-8-sig entfernt unsichtbares BOM-Zeichen
                 with open(
-                    script_path,
+                    script_file,
                     "r",
                     encoding="utf-8-sig"
                 ) as f:
                     original_lines = f.readlines()
 
-
                 overlay_line = (
-                    '    config.overlay_screens.append("image_move_hidden")\n'
-                    '    $ update_layers_max()\n'
+                    '    config.overlay_screens.append("image_move_hidden")\n\n'
+                    'python:\n'
+                    '    update_layers_max()\n'
                 )
 
 
@@ -3779,7 +4061,7 @@ init python:
                     )
 
                     with open(
-                        script_path,
+                        script_file,
                         "w",
                         encoding="utf-8",
                         newline=""
@@ -3792,7 +4074,7 @@ init python:
                         "{{color=#238626}}Added:{{/color}}\n"
                         "config.overlay_screens.append(\"image_move_hidden\")\n\n"
                         "File:\n{}".format(
-                            script_path
+                            script_file
                         )
                     )
 
@@ -3800,20 +4082,18 @@ init python:
 
                     message = (
                         "{{color=#238626}}Line already exists:{{/color}}\n{}".format(
-                            script_path
+                            script_file
                         )
                     )
 
                 source_files = [
                     "developer_menu.rpy",
                     "version_ipt.rpy",
-                    "layer_positions.txt"#,
-                    #"SourceCodePro-VariableFont_wght.ttf"
+                    "layer_positions.txt",
+                    "00_ipt_system.rpy"
                 ]
 
-                target_folder = os.path.dirname(
-                    script_path
-                )
+                target_scripts_folder = game_path
 
                 search_folders = [
                     os.path.join(store.OUTPUT_DIR, ""),
@@ -3838,7 +4118,7 @@ init python:
                             break
 
                     target_file = os.path.join(
-                        target_folder,
+                        target_scripts_folder,
                         filename
                     )
 
@@ -3876,15 +4156,10 @@ init python:
 
                 # Zielprojekt:
                 # .../game/psutil
-                target_game_folder = os.path.abspath(
-                    os.path.join(
-                        os.path.dirname(script_path),
-                        ".."
-                    )
-                )
+                target_psutil_folder = game_path
 
                 target_psutil = os.path.join(
-                    target_game_folder,
+                    target_psutil_folder,
                     "psutil"
                 )
 
@@ -3911,6 +4186,83 @@ init python:
                             source_psutil
                         )
                     )
+
+
+                ##################
+                # Fonts kopieren #
+                ##################
+
+                fonts_source_files = [
+                    "DejaVuSansMono.ttf"
+                ]
+
+                # Ziel: .../game/Fonts
+                target_fonts_folder = os.path.join(
+                    game_path,
+                    "Fonts"
+                )
+
+                # Fonts-Ordner im Zielprojekt erzeugen
+                os.makedirs(
+                    target_fonts_folder,
+                    exist_ok=True
+                )
+
+                # Quelle: OUTPUT_DIR/Fonts
+                search_fonts_folder = [
+                    os.path.join(
+                        store.OUTPUT_DIR,
+                        "Fonts"
+                    )
+                ]
+
+                for font_filename in fonts_source_files:
+                    font_source_file = None
+
+                    # Quelldatei suchen
+                    for fonts_folder in search_fonts_folder:
+                        possible_font_file = os.path.join(
+                            fonts_folder,
+                            font_filename
+                        )
+
+                        if os.path.isfile(possible_font_file):
+                            font_source_file = possible_font_file
+                            break
+
+                    # Wenn keine Quelle gefunden wurde
+                    if font_source_file is None:
+                        message += (
+                            "\n\nWarning:\n"
+                            "{} not found in:\n{}"
+                            .format(
+                                font_filename,
+                                search_fonts_folder
+                            )
+                        )
+                        continue
+
+                    # Zielpfad bilden
+                    target_font_file = os.path.join(
+                        target_fonts_folder,
+                        font_filename
+                    )
+
+                    # Datei kopieren
+                    shutil.copyfile(
+                        font_source_file,
+                        target_font_file
+                    )
+
+                    message += (
+                        "\n\n{{color=#238626}}Copied: "
+                        "{{b}}{}{{/b}}:{{/color}}\n{}"
+                        .format(
+                            font_filename,
+                            target_font_file
+                        )
+                    )
+
 
             store.message_window_open = True
 
@@ -3953,7 +4305,7 @@ label search_projects:
     $ search_projects_menu_opened = False
     show screen search_projects_menu
 
-    $ START_DIR = "/"
+    $ START_DIR = "/home/daniel/Daten/RenPy/--------------------------> renpy-8.5.3-sdk"
 
     python:
         current_directory = os.path.abspath(config.gamedir)

@@ -1,181 +1,59 @@
 
+init offset = 100
 
-init -1 python hide:
-    config.screen_width = 1000
-    config.screen_height = 720
-
-    style.say_who_window.background = Frame("images/mp.png", 40, 40)
-    style.say_who_window.xalign = 0.0
-    style.say_who_window.yalign = 1.0
-
-    # Position small dialogue Box
-    style.say_who_window.xpos = -4
-    style.say_who_window.ypos = 46
-
-    style.say_who_window.left_padding = 15
-    style.say_who_window.top_padding = 15
-    style.say_who_window.right_padding = 15
-    style.say_who_window.bottom_padding = 15
-    style.say_who_window.xminimum = 300
-    style.say_who_window.yminimum = 50
-
-    config.window_title = project_name
-
-    config.name = project_name
-    config.version = project_version
-
-    theme.threeD(
-        # Button and slider background colour unhovered
-        widget = "#84ec6e",
-
-        # Button and slider background colour hovered
-        widget_hover = "#b8f4b8",
-
-        # Button text and unselected widget colour
-        widget_text = "#4f7649",
-
-        # Selected widget text colour
-        widget_selected = "#65b058",
-
-        # Disabled widget background colour
-        disabled = "#79b971",
-
-        # Disabled widget text colour
-        disabled_text = "#5b864a",
-
-        # Label over button
-        label = "#d6e9d0",
-
-        # Menu frames
-        frame = "#77c966",
-
-        mm_root = "background",
-
-        gm_root = "background",
-
-        rounded_window = False,
-
-        )
-
-
-    style.window.background = Frame("images/mp.png", 12, 12)
-
-    style.window.left_margin = 1
-    style.window.right_margin = 1
-    style.window.top_margin = 1
-    style.window.bottom_margin = 1
-
-    style.window.left_padding = 60
-    style.window.right_padding = 260
-    style.window.top_padding = 35
-    style.window.bottom_padding = 35
-
-    # Y-text position in main frame
-    style.window.yminimum = 175
-
-    style.default.font = "Fonts/Bubble Sans 1.01.otf"
-
-    style.default.size = 22
-
-    style.default.color = "#000000" 
-
-    config.has_sound = True
-
-
-    config.has_music = True
-
-
-    config.has_voice = False
-
-
-    config.enter_transition = None
-
-
-    config.exit_transition = None
-
-
-    config.intra_transition = None
-
-
-    config.main_game_transition = None
-
-
-    config.game_main_transition = None
-
-
-    config.end_splash_transition = None
-
-
-    config.end_game_transition = None
-
-
-    config.after_load_transition = None
-
-
-    config.window_show_transition = None
-
-
-    config.window_hide_transition = None
-
-
-    config.adv_nvl_transition = dissolve
-
-
-    config.nvl_adv_transition = dissolve
-
-
-    config.enter_yesno_transition = None
-
-
-    config.exit_yesno_transition = None
-
-
-    config.enter_replay_transition = None
-
-
-    config.exit_replay_transition = None
-
-
-    config.say_attribute_transition = None
-
-python early:
-    config.save_directory = "Image_Positioning"
-
-init -1 python hide:
-    config.default_fullscreen = False
-    config.default_text_cps = 42
-    config.default_afm_time = 10
-    config.window_icon = "icon.png"
-
+define config.quit_action = Quit(confirm=True)
 
 init python:
-    build.directory_name = "Image_Positioning_Tool"
 
-    build.executable_name = "Image_Positioning_Tool"
+    # -------------------------------------------------------------
+    # ISOLIERTE STYLES FÜR DAS TOOL DEFINIEREN (Präfix "ipt_")
+    # -------------------------------------------------------------
 
-    build.include_update = False
+    # 1. Isolierter Text-Style
+    style.ipt_text = Style(style.default)
+    style.ipt_text.font = "DejaVuSansMono.ttf"
+    style.ipt_text.size = 14
+    style.ipt_text.color = "#000000"
 
-    #build.classify('**~', None)
-    #build.classify('**.bak', None)
-    #build.classify('**/.**', None)
-    #build.classify('**/#**', None)
-    #build.classify('**.rpy', None)
-    #build.classify('**.txt', None)
-    #build.classify('**/thumbs.db', None)
+    # 2. Button-Style komplett isolieren (Kein Erben von style.button)
 
-    build.archive("scripts", "all")
-    build.archive("images", "all")
+    # style.ipt_button = Style(style.default) # <- 'style.default' statt 'style.button'!
 
+    style.ipt_button.background = Frame(Solid("#84ec6e"), 0, 0)
+    style.ipt_button.hover_background = Frame(Solid("#92fb7b"), 0, 0)
+    style.ipt_button.padding = (4, 1, 4, 1)
+    style.ipt_button.xmaximum = 900
+    style.ipt_button.align = (0.5, 0.5)
 
-    #build.classify("game/**.rpy", "scripts")
-    #build.classify("game/**.rpyc", "scripts")
+    style.ipt_pm_button.background = Frame(Solid("#84ec6e"), 0, 0)
+    style.ipt_pm_button.hover_background = Frame(Solid("#92fb7b"), 0, 0)
+    style.ipt_pm_button.xminimum = 24
+    style.ipt_pm_button.align = (0.5, 0.5)
 
-    #build.classify("game/**.jpeg", "images")
-    #build.classify("game/**.jpg", "images")
-    #build.classify("game/**.png", "images")
-    #build.classify("game/**.ogg", "images")
-    #build.classify("game/**.mp3", "images")
-    #build.classify("game/**.wav", "images")
+    # 3. Button Text-Style sauber ableiten
+    style.ipt_button_text = Style(style.ipt_text)
+    style.ipt_button_text.color = "#4f7649"
+    style.ipt_button_text.hover_color = "#65b058"
+    style.ipt_button_text.insensitive_color = "#888888" # Text deaktiviert (Ausgegraut)
+    style.ipt_button_text.xalign = 0.0
+    style.ipt_button_text.yalign = 0.5
 
-    build.documentation('*.html')
-    build.documentation('*.txt')
+    style.ipt_center_button_text = Style(style.ipt_text)
+    style.ipt_center_button_text.color = "#4f7649"
+    style.ipt_center_button_text.hover_color = "#65b058"
+    style.ipt_center_button_text.insensitive_color = "#888888" # Text deaktiviert (Ausgegraut)
+    style.ipt_center_button_text.xalign = 0.5
+    style.ipt_center_button_text.yalign = 0.5
+
+    # 4. Fenster / Dialog-Boxen
+    style.ipt_window = Style(style.default) # <- 'style.default' statt 'style.window'!
+    style.ipt_window.background = Frame("images/mp.png", 12, 12)
+    style.ipt_window.padding = (15, 15, 15, 15)
+
+    # 5. Namensbox für Dialoge
+    style.ipt_say_who = Style(style.default)
+    style.ipt_say_who.background = Frame("images/mp.png", 40, 40)
+    style.ipt_say_who.padding = (15, 15, 15, 15)
+    style.ipt_say_who.xminimum = 300
+    style.ipt_say_who.yminimum = 50
+

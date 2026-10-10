@@ -1,4 +1,9 @@
 
+label main_menu:
+    call screen main_menu
+    return
+
+
 label start:
     if start_search_menu:
         scene ingame_background
@@ -9,12 +14,8 @@ label start:
         show screen image_move_hidden
         show screen variable_monitoring
 
-
     # Here begins your game script.
 
-    "New GitHub line"
-    "Second GitHub test"
-    "Third GitHub test"
     "line 1"
     "line 2"
     "line 3"
