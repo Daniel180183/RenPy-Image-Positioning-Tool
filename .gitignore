@@ -1,0 +1,15 @@
+
+*.rpyc
+__pycache__/
+audio/
+cache/
+Fonts/
+gui/
+images/
+saves/
+tl/
+.DS_Store
+Thumbs.db
+log.txt
+traceback.txt
+
