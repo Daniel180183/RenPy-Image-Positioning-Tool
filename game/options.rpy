@@ -12,7 +12,7 @@
 ##
 ## The _() surrounding the string marks it as eligible for translation.
 
-define config.name = _("the_question_first_install")
+define config.name = _("the_question_22102026")
 
 
 ## Determines if the title given above is shown on the main menu screen. Set
@@ -44,7 +44,7 @@ Written By: mikey""")
 ## distribution. This must be ASCII-only, and must not contain spaces, colons,
 ## or semicolons.
 
-define build.name = "the_question"
+define build.name = "the_question_22102026"
 
 ## Change the version used by the build system.
 define build.version = "7.0"
@@ -146,7 +146,7 @@ default preferences.afm_time = 15
 ## This generally should not be changed, and if it is, should always be a
 ## literal string, not an expression.
 
-define config.save_directory = "the_question-7"
+define config.save_directory = "the_question_22102026"
 
 
 ## Icon ########################################################################

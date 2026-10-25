@@ -1,5 +1,9 @@
+
+
+
 init python:
     config.overlay_screens.append("image_move_hidden")
+    config.overlay_screens.append("variable_monitoring")
 
 python:
     update_layers_max()
