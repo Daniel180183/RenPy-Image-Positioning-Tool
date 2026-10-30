@@ -9,4 +9,5 @@ saves/
 tl/
 .DS_Store
 Thumbs.db
-
+errors.txt
+traceback.txt
