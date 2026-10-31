@@ -1,5 +1,4 @@
 ﻿
-
 ###############################################
 # Vorhersage ladbare Bilder über RAM und VRAM #
 ###############################################
@@ -18,6 +17,8 @@ default stop_loading_layers = False
 init python:
     import psutil
     import subprocess
+    import time
+    import shutil
 
     def nvidia_vram_free_mb():
         try:
@@ -277,71 +278,13 @@ transform move_to_left:
     ease 0.5 xalign 0.0
 
 
-    # def get_scale_button_center(button_id):
-    #
-    #     # Ermittelt das Zentrum eines der beiden Skalierungsbuttons
-    #     # in Bildschirmkoordinaten.
-    #
-    #     button = renpy.get_widget(
-    #         "image_move",
-    #         button_id
-    #         )
-    #
-    #     if button is None:
-    #         return None
-    #
-    #     render = renpy.render(
-    #         button,
-    #         config.screen_width,
-    #         config.screen_height,
-    #         0.0,
-    #         0.0
-    #         )
-    #
-    #     # Das Renderobjekt selbst kennt seine lokale Größe.
-    #     width = render.width
-    #     height = render.height
-    #
-    #     placement = button.get_placement()
-    #
-    #     xpos = placement[0]
-    #     ypos = placement[1]
-    #     xanchor = placement[2]
-    #     yanchor = placement[3]
-    #     xoffset = placement[4]
-    #     yoffset = placement[5]
-    #
-    #     render = renpy.render(
-    #         anchor,
-    #         config.screen_width,
-    #         config.screen_height,
-    #         0.0,
-    #         0.0
-    #
-    #     placement = anchor.get_placement()
-    #
-    #     xpos = placement[0]
-    #     ypos = placement[1]
-    #     xanchor = placement[2]
-    #     yanchor = placement[3]
-    #     xoffset = placement[4]
-    #     yoffset = placement[5]
+transform scale_ui(scale):
+    zoom scale
 
 
+transform rotate_label_90_left:
+    rotate 270
 
-# Erkenntnisse:
-
-# -> Warum gelingt ein Aufruf ohne Attribute? - ATL Funktionen in transform haben eine spezielle Schnittstelle und füllen die drei Argumente selbst aus.
-
-# -> Gelingt ein Funktionsaufruf einer Funktion die Argumente erwartet auch ohne Argumente? - Nein, das Argument ist ein Pflichtargument, außer wenn das Argument einen Standardwert hat (def rounds(round_one = 0))
-
-# -> Was wird bei renpy.restart_interaction neu initialisiert? - Der Screen wird neu aufgebaut.
-
-# -> Was geschieht bei return 0.01? Bei einer ATL-Funktion ist dies eine Zeitangabe, welche die Funktion alle 0.01 Sekunden neu aufruft. Abbruch des Neuaufrufes nur über eine Bedingnung in der Funktion. Diese Art von Funktion ist für Transform-Aktualisierungen in Ren'Py gedacht.
-
-    # Skalierung für ein einzeles Elemet was sich bspw. anders als die übrigen verhalten soll.
-    # def px(value):
-    #     return round(value * ui_scale())
 
 default ipt_font = "DejaVuSansMono.ttf"
 default image_move_active = False
@@ -349,8 +292,6 @@ default file_location = ""
 default layer = -1
 default move_layers_simultan = False
 default selected_layer = -1
-default menu_extension = False
-default text_show_var_scams = False
 default rotate_range = 1
 default zoom_range = 0.01
 default xalign_range = 0.01
@@ -386,7 +327,6 @@ default error_found = False
 default data_project_file = False
 default delete_mode = ""
 default location_input = "images/"
-default display_location_input = "images/"
 default show_input_frame = False
 default show_file_input = False
 default number_input = ""
@@ -397,121 +337,34 @@ default show_yalign_input = False
 default float_input = ""
 default float_value = 0.01
 default show_invalid_float_message = False
+default show_invalid_int_message = False
 default image_loading_error = False
 default delete_query = False
 default delete_query_data_pos_file = False
 default show_current_image_parameters = False
 default second_button_color = "#73cf60"
-default second_hover_color = "#adf19f"
+default hover_color = "#d3f8cc"
 default first_pm_button_color = "#80d76e"
 default second_pm_button_color = "#80e46b"
 default image_move_menu_slide_down = False
 default hide_current_menu = False
 default move_into_screen = False
 default return_button = False
+default current_layer = None
 
 default move_yoffset = 0.0
 
 default move_duration_y = 0.0
 
-
-default current_line = ""
-default test_line = ""
-
-default cursor_position = 0
-
-default cursor_visible = True
-default cursor_blink_start = 0.0
-
-default px_before_cursor = 0
-default last_location_input = "images/"
-
-default cursor_lines = []
-default last_text_cursor_lines = ""
-
 default test_var = False
 
 
-transform scale_ui(scale):
-    zoom scale
-
-
-transform rotate_label_90_left:
-    rotate 270
-
-
-###################
-# Debugging start #
-###################
-
-default current_layer = None
-
-screen variable_monitoring():
-    $ frame_width, frame_height = get_image_move_frame_size()
-
-    frame:
-        if variable_monitoring_startet:
-            xalign 1.0
-            yalign 0.1
-
-        # if slide_image_move_menu_right:
-        #     at move_to_left
-        #     yalign 0.1
-        #
-        # if (not slide_image_move_menu_right
-        #     and not variable_monitoring_startet):
-        #     at move_to_right
-        #     yalign 0.1
-
-        background Frame(Solid("#84ec6e"), 6, 6, 6, 6)
-        vbox:
-            textbutton "get_ui_scale" action [
-                Function(get_ui_scale_print)
-            ] style "ipt_button" text_style "ipt_button_text" xmaximum 300 xfill True yoffset 2
-
-            textbutton "get_image_move_frame_size" action [
-                Function(get_image_move_frame_size_print)
-                ] style "ipt_button" text_style "ipt_button_text" background second_button_color hover_background second_hover_color xmaximum 300 xfill True yoffset 2
-
-            textbutton "get_move_duration_x" action [
-                Function(get_move_duration_x_print)
-                ] style "ipt_button" text_style "ipt_button_text" xmaximum 300 xfill True yoffset 2
-
-            textbutton "get_move_duration_y" action [
-                Function(get_move_duration_y_print)
-                ] style "ipt_button" text_style "ipt_button_text" background second_button_color hover_background second_hover_color xmaximum 300 xfill True yoffset 2
-
-            label "{color=#4f7649}slide_image_move_menu_right: {color=#cb1e1e}[slide_image_move_menu_right]" text_style "ipt_button_text" xmaximum 300 xfill True yoffset 2
-
-            label "{color=#4f7649}image_move_menu_startet: {color=#cb1e1e}[image_move_menu_startet]" text_style "ipt_button_text" xmaximum 300 xfill True yoffset 2
-
-            label "{color=#4f7649}move_into_screen (Neuladung nach Slide runter): {color=#cb1e1e}[move_into_screen]" text_style "ipt_button_text" xmaximum 300 xfill True yoffset 2
-
-            label "{color=#4f7649}variable_monitoring_startet: {color=#cb1e1e}[variable_monitoring_startet]" text_style "ipt_button_text" xmaximum 300 xfill True yoffset 2
-
-init python:
-    def get_ui_scale_print():
-        print("get_ui_scale return:", get_ui_scale())
-
-    def get_image_move_frame_size_print():
-        print("get_image_move_frame_size:", get_image_move_frame_size())
-
-    def get_move_duration_x_print():
-        print("get_move_duration_x:", get_move_duration_x())
-
-    def get_move_duration_y_print():
-        print("get_move_duration_y:", get_move_duration_y())
-
-#{color=#000000}\
-#= {color=#ac1111}[]\n\
-
-# Für eine Zeilenüberwachung innerhalb eines "screen":
-#   text "Überwachungsname"
+######################
+# MINI DEBUG CONSOLE #
+######################
 
 
 # ============================================================
-# MINI DEBUG CONSOLE
-# Ren'Py 8.3.8
 #
 # Shift+F1 = Mini-Konsole ein-/ausblenden
 #
@@ -550,9 +403,6 @@ default minus_button_console_bg_alpha = False
 default minus_button_console_bg_alpha_hovered = False
 default mini_console_interactive = True
 
-#default ipt_mini_console_output = ["Init-Zeile: Konsole bereit."]
-
-
 # ============================================================
 # STDOUT -> MINI-KONSOLE
 # ============================================================
@@ -589,7 +439,6 @@ init python:
             mini_console_stdout
         )
 
-
 # ============================================================
 # OPTIONAL: STDERR -> MINI-KONSOLE
 #
@@ -621,7 +470,6 @@ init python:
             mini_console_stderr
         )
 
-
 # ============================================================
 # PYTHON-BEFEHL AUSFÜHREN
 # ============================================================
@@ -629,12 +477,10 @@ init python:
 init python:
 
     def mini_console_execute(command):
-
         command = command.strip()
 
         if not command:
             return
-
 
         # ----------------------------------------------------
         # History speichern
@@ -667,31 +513,25 @@ init python:
         # ----------------------------------------------------
 
         if command == "clear":
-
             store.mini_console_output = []
 
             renpy.restart_interaction()
 
             return
 
-
         # ----------------------------------------------------
         # PYTHON AUSFÜHREN
         # ----------------------------------------------------
 
         try:
-
             # Zuerst versuchen wir einen Ausdruck auszuwerten.
-
             result = eval(
                 command,
                 globals(),
                 store.__dict__
             )
 
-
             if result is not None:
-
                 store.mini_console_output.append(
                     repr(result)
                 )
@@ -722,7 +562,6 @@ init python:
                 )
             )
 
-
         # ----------------------------------------------------
         # Ausgabe begrenzen
         # ----------------------------------------------------
@@ -730,54 +569,40 @@ init python:
         store.mini_console_output = \
             store.mini_console_output[-200:]
 
-
         renpy.restart_interaction()
-
 
 # ============================================================
 # HISTORY: AUFWÄRTS
 # ============================================================
 
 init python:
-
     def mini_console_history_up():
-
         if not mini_console_history:
             return
 
-
         position = mini_console_history_position
-
 
         # Noch keine History-Navigation.
         if position == -1:
-
             position = len(
                 mini_console_history
             ) - 1
 
-
         elif position > 0:
-
             position -= 1
 
-
         store.mini_console_history_position = position
-
 
         store.mini_console_input = \
             mini_console_history[position]
 
-
         renpy.restart_interaction()
-
 
 # ============================================================
 # HISTORY: ABWÄRTS
 # ============================================================
 
     def mini_console_history_down():
-
         if not mini_console_history:
             return
 
@@ -800,7 +625,6 @@ init python:
             store.mini_console_input = ""
 
         renpy.restart_interaction()
-
 
 # ============================================================
 # SCREEN
@@ -843,9 +667,9 @@ screen mini_console():
                         xanchor 1.0
                         ysize int(config.screen_height * console_text_height)
 
-                        # -------------------------------------------------
+                        # -------------------------------------
                         # Ausgabe (Viewport)
-                        # -------------------------------------------------
+                        # -------------------------------------
 
                         viewport:
                             id "console_viewport"
@@ -865,9 +689,9 @@ screen mini_console():
                                     text line:
                                         style "ipt_console_text"
 
-                        # -------------------------------------------------
+                        # -------------------------------------
                         # Scrollbar (Vollständig gegen Drift gesichert)
-                        # -------------------------------------------------
+                        # -------------------------------------
 
                         fixed:
                             xpos 1.0
@@ -882,15 +706,17 @@ screen mini_console():
                             # 2. Die vbar nutzt einen komplett neutralisierten Stil
                             vbar:
                                 value YScrollValue("console_viewport")
-                                xalign 0.5 # linker Rand Thumb
-                                xsize 8 # Thumb-Breite
+                                #xalign 0.5 # linker Rand Thumb
+                                #xsize 8 # Thumb-Breite
+                                xsize 12 # Thumb-Breite = Basebar-Breite
                                 base_bar None
-                                thumb Solid("#1c1c1c")
+                                #thumb Solid("#1c1c1c")
+                                thumb Solid("#4f7649")
                                 yfill True
 
-                # -------------------------------------------------
+                # --------------------------------------------
                 # Eingabe
-                # -------------------------------------------------
+                # -------------------------------------------
 
                     hbox:
                         spacing 8
@@ -916,9 +742,9 @@ screen mini_console():
                             style "ipt_console_text"
                             xfill True
 
-                # -------------------------------------------------
+                # ----------------------------------------
                 # Buttons
-                # -------------------------------------------------
+                # ----------------------------------------
 
                     hbox:
                         spacing 8
@@ -932,41 +758,39 @@ screen mini_console():
                                 Function(
                                     renpy.restart_interaction
                                 )
-                            ] style "ipt_button" text_style "ipt_button_text"
+                            ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                         hbox:
                             textbutton "↑":
                                 action Function(
                                     mini_console_history_up
-                                ) style "ipt_button" text_style "ipt_button_text"
+                                ) style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                             textbutton "{color=#4f7649}Entered line" style "ipt_button" text_style "ipt_button_text"
 
                             textbutton "↓":
                                 action Function(
                                     mini_console_history_down
-                                ) style "ipt_button" text_style "ipt_button_text"
+                                ) style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                         if mini_console_interactive:
-
                             textbutton "⊘ Click-through blocked":
                                 action [
                                     SetVariable("mini_console_interactive", False),
                                     SetVariable("alpha_console", 162)
-                                ] style "ipt_button" text_style "ipt_button_text"
+                                ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                         else:
-
                             textbutton "◉ Click-through console":
                                 action [
                                     SetVariable("mini_console_interactive", True),
                                     SetVariable("alpha_console", 231)
-                                ]  style "ipt_button" text_style "ipt_button_text"
+                                ]  style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                         textbutton "Close":
                             action [
                                 SetVariable("mini_console_open", False)
-                            ] style "ipt_button" text_style "ipt_button_text"
+                            ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                         hbox:
                             if console_frame_height <= 1.02:
@@ -974,7 +798,7 @@ screen mini_console():
                                     action SetVariable("plus_button_console_height_held", True)
                                     hovered SetVariable("plus_button_console_height_held_hovered", True)
                                     unhovered SetVariable("plus_button_console_height_held_hovered", False)
-                                    style "ipt_button" text_style "ipt_button_text"
+                                    style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 if plus_button_console_height_held_hovered:
                                     key "mouseup_1" action SetVariable(
@@ -997,7 +821,7 @@ screen mini_console():
                                     SetVariable("minus_button_console_height_held", False),
                                     SetVariable("minus_button_console_height_held_hovered", False)
                                 ]
-                                textbutton "+" style "ipt_button" text_style "ipt_button_text"
+                                textbutton "+" style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                             textbutton "{color=#4f7649}Console height" style "ipt_button" text_style "ipt_button_text"
 
@@ -1006,7 +830,7 @@ screen mini_console():
                                     action SetVariable("minus_button_console_height_held", True)
                                     hovered SetVariable("minus_button_console_height_held_hovered", True)
                                     unhovered SetVariable("minus_button_console_height_held_hovered", False)
-                                    style "ipt_button" text_style "ipt_button_text"
+                                    style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 if minus_button_console_height_held_hovered:
                                     key "mouseup_1" action SetVariable(
@@ -1038,7 +862,7 @@ screen mini_console():
                                     action SetVariable("plus_button_console_bg_alpha", True)
                                     hovered SetVariable("plus_button_console_bg_alpha_hovered", True)
                                     unhovered SetVariable("plus_button_console_bg_alpha_hovered", False)
-                                    style "ipt_button" text_style "ipt_button_text"
+                                    style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 if plus_button_console_bg_alpha_hovered:
                                     key "mouseup_1" action SetVariable(
@@ -1070,7 +894,7 @@ screen mini_console():
                                     action SetVariable("minus_button_console_bg_alpha", True)
                                     hovered SetVariable("minus_button_console_bg_alpha_hovered", True)
                                     unhovered SetVariable("minus_button_console_bg_alpha_hovered", False)
-                                    style "ipt_button" text_style "ipt_button_text"
+                                    style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 if minus_button_console_bg_alpha_hovered:
                                     key "mouseup_1" action SetVariable(
@@ -1095,7 +919,6 @@ screen mini_console():
 
                                 textbutton "-" style "ipt_button" text_style "ipt_button_text"
 
-
 # ============================================================
 # SCREEN ALS OVERLAY REGISTRIEREN
 # ============================================================
@@ -1106,10 +929,6 @@ init python:
         "mini_console"
     )
 
-
-#################
-# Debugging end #
-#################
 
 screen show_data_pos_file(file_content):
     $ win_width = int(config.screen_width * 0.7)
@@ -1162,6 +981,7 @@ screen show_data_pos_file(file_content):
             yalign 0.98
             style "ipt_button"
             text_style "ipt_button_text"
+            hover_background hover_color
 
 
 screen image_move_hidden():
@@ -1176,7 +996,7 @@ screen image_move_hidden():
                 SetVariable("ipt_show_hidden_button", False),
                 SetVariable("image_move_menu_slide_down", True),
                 Jump("hide_window")
-            ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
+            ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
 
     if ipt_show_hidden_button:
         label "{[project_name_color]}[project_name]   v[project_version]{/color}" xalign 1.0 yalign 1.0 text_size 18
@@ -1184,7 +1004,7 @@ screen image_move_hidden():
     if ipt_show_hidden_button:
         textbutton "{color=#4f7649}Return to main menu" action [
             MainMenu(confirm = False)
-        ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
+        ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
 
 
 screen return_move_menu():
@@ -1194,322 +1014,13 @@ screen return_move_menu():
         SetVariable("hide_current_menu", False),
         Hide("return_move_menu", Dissolve(0.2)),
         Show("image_move")
-    ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
+    ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
 
     label "{[project_name_color]}[project_name]   v[project_version] {/color}"  xalign 1.0 yalign 1.0 text_size 18
 
     textbutton "{color=#4f7649}Return to main menu" action [
         MainMenu(confirm = False)
-    ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8
-
-
-# screen wait_enter_only():
-#     timer 0.01 action Function(resize_image_move, 0.00)
-#     key "K_RETURN" action Return(True)
-
-
-init python:
-    import time
-
-    # Diese Unterklasse erbt von der Basisklasse "VariableInputValue".
-    # set_text() ist eine Methode von VariableInputValue.
-    # super(FilePathInputValue, self).set_text(text) bedeutet: Führe jetzt die ursprüngliche set_text()-Methode der Elternklasse VariableInputValue aus.
-    # VariableInputValue kann also auch direkt verwendet werden.
-
-    # Die ursprüngliche Idee:
-        # Aus der Datei "behavior.py"
-        # map_event(ev, "input_left") und
-        # map_event(ev, "input_right")
-        # der Klasse "Input" nutzen, um die Pfeiltasten links und rechts direkt auszulesen.
-
-
-    # class FilePathInputValue(VariableInputValue):
-    #
-    #     def set_text(self, text):
-    #
-    #         # Normales Speichern der Variable
-    #         super(FilePathInputValue, self).set_text(text)
-
-    # ____________________________
-
-    # KEINE PROGRAMMFUNKTION!!! Nur zum Testen
-
-    # MyCaret erbt von CaretBlink. Möglicherweise kann ich das Verhalten des Originalcursos auf meinen Cursor anwenden.
-
-    # EventInput: überschneidet sich diese Methode in Ren'Py?
-
-    # class MyCaret(CaretBlink):
-    #
-    #     def __init__(self, caret, caret_blink, **properties):
-    #         super(MyCaret, self).__init__(
-    #             caret,
-    #             caret_blink,
-    #             **properties
-    #             )
-
-
-    def get_display_text():
-        text = location_input
-
-        result = ""
-        current_line = ""
-
-        for char in text:
-
-            test_line = current_line + char
-
-            displayed_text = Text(
-                test_line,
-                text_size = 16,
-                text_font = ipt_font
-            )
-
-            rendered_text = renpy.render(
-                displayed_text,
-                10000,
-                10000,
-                0,
-                0
-            )
-
-            if rendered_text.width <= 553:
-                current_line = test_line
-
-            else:
-                result += current_line + "\n"
-                current_line = char
-
-        result += current_line
-
-        #print(current_line)
-        #print(result)
-
-        return result
-
-    # Funktionierende Variante für x-Verschiebung.
-
-    # def update_location_cursor():
-    #     global cursor_position
-    #     global px_before_cursor
-    #     global last_location_input
-    #     cursor_px_offset_left = 3
-    #
-    #     widget = renpy.get_widget("image_move", "location_input")
-    #
-    #     if widget is not None:
-    #         new_position = widget.caret_pos
-    #
-    #         if (new_position != cursor_position
-    #             or location_input != last_location_input):
-    #             reset_cursor_blink()
-    #
-    #     if (new_position == cursor_position
-    #         and location_input == last_location_input):
-    #         return
-    #
-    #     cursor_position = new_position
-    #     last_location_input = location_input
-    #
-    #     displayed_text = Text(location_input[:cursor_position], size = 16)
-    #     rendered_text = renpy.render(displayed_text, 10000, 100, 0, 0)
-    #
-    #     px_before_cursor = round(rendered_text.width) - cursor_px_offset_left
-
-
-    def update_location_cursor():
-        global cursor_position
-        global px_before_cursor
-        global last_location_input
-
-        cursor_px_offset_left = 3
-
-        widget = renpy.get_widget("image_move", "location_input")
-
-        if widget is None:
-            return
-
-        new_position = widget.caret_pos
-
-        position_changed = new_position != cursor_position
-        text_changed = location_input != last_location_input
-
-        if not position_changed and not text_changed:
-            return
-
-        if position_changed or text_changed:
-            reset_cursor_blink()
-
-        # Neue Cursorposition übernehmen
-        cursor_position = new_position
-
-        # Jetzt kennt update_cursor_lines() die neue Position
-        if position_changed:
-            update_cursor_lines()
-
-        last_location_input = location_input
-
-        displayed_text = Text(
-            location_input[:cursor_position],
-            size = 16,
-            font = ipt_font
-        )
-
-        rendered_text = renpy.render(
-            displayed_text, 10000, 100, 0, 0)
-
-        px_before_cursor = round(rendered_text.width) - cursor_px_offset_left
-
-
-    def update_cursor_blink():
-        global cursor_visible
-        global cursor_blink_start
-
-        # Zeit seit dem letzten Reset des Blinkzyklus.
-        elapsed = time.time() - cursor_blink_start
-
-        # Nach 0,6 Sekunden Sichtbarkeit wechseln.
-        if elapsed >= 0.6:
-            cursor_visible = not cursor_visible
-
-            cursor_blink_start = time.time()
-
-
-    def reset_cursor_blink():
-        global cursor_visible
-        global cursor_blink_start
-
-        cursor_visible = True
-        cursor_blink_start = time.time()
-
-
-    def get_cursor_lines():
-
-        text = location_input
-
-        lines = []
-        current_line = ""
-        line_start = 0
-
-        for i, char in enumerate(text):
-
-            test_line = current_line + char
-
-            displayed_text = Text(test_line, style = "input_text")
-            rendered_text = renpy.render(displayed_text, 10000, 10000, 0, 0)
-
-            if rendered_text.width <= 553:
-                current_line = test_line
-
-            else:
-                lines.append({
-                    "text": current_line,
-                    "start": line_start,
-                    "end": i
-                })
-
-                current_line = char
-                line_start = i
-
-        # Letzte Zeile hinzufügen.
-        lines.append({
-            "text": current_line,
-            "start": line_start,
-            "end": len(text)
-        })
-
-        return lines
-
-
-    def move_cursor_vertical(direction):
-
-        widget = renpy.get_widget("image_move", "location_input")
-
-        if widget is None:
-            return
-
-        lines = get_cursor_lines()
-
-        # Aktuelle Zeile finden.
-        current_line_number = None
-
-        for line_number, line in enumerate(lines):
-
-            if line["start"] <= cursor_position < line["end"]:
-                current_line_number = line_number
-                break
-
-        # Cursor am Ende des gesamten Textes.
-        if cursor_position == len(location_input):
-            current_line_number = len(lines) - 1
-
-        if current_line_number is None:
-            return
-
-        # Zielzeile bestimmen.
-        target_line_number = current_line_number + direction
-
-        # Oberhalb der ersten bzw. unterhalb der letzten Zeile
-        # gibt es nichts mehr zu tun.
-        if target_line_number < 0:
-            return
-
-        if target_line_number >= len(lines):
-            return
-
-        current_line = lines[current_line_number]
-        target_line = lines[target_line_number]
-
-        # Cursorposition innerhalb der aktuellen Zeile.
-        relative_position = cursor_position - current_line["start"]
-
-        # Zielposition zunächst auf dieselbe Zeichenposition setzen.
-        target_position = target_line["start"] + relative_position
-
-        # Nicht hinter das Ende der Zielzeile gehen.
-        if target_position > target_line["end"]:
-            target_position = target_line["end"]
-
-        # Cursor des echten Ren'Py-Inputs bewegen.
-        widget.caret_pos = target_position
-
-        # Blinkzyklus zurücksetzen.
-        global cursor_visible
-        global cursor_blink_start
-
-        cursor_visible = True
-        cursor_blink_start = time.time()
-
-
-    def get_cursor_line_info():
-
-        for line_number, line in enumerate(cursor_lines):
-
-            if line["start"] <= cursor_position < line["end"]:
-
-                relative_position = cursor_position - line["start"]
-
-                return line_number, relative_position
-
-        # Sicherheitsfall: keine Zeilen vorhanden.
-        if not cursor_lines:
-            return 0, 0
-
-        # Sicherheitsfall: Cursor am Ende des Textes.
-        last_line = len(cursor_lines) - 1
-        relative_position = cursor_position - cursor_lines[last_line]["start"]
-
-        return last_line, relative_position
-
-
-    def update_cursor_lines():
-        global cursor_lines
-        global last_text_cursor_lines
-
-        if location_input == last_text_cursor_lines:
-            return
-
-        cursor_lines = get_cursor_lines()
-        last_text_cursor_lines = location_input
+    ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
 
 
 screen image_move_restart():
@@ -1606,24 +1117,28 @@ screen image_move():
                                     and not delete_query
                                     and not delete_query_data_pos_file
                                     and not show_stop_message
-                                    and not show_current_image_parameters):
+                                    and not show_current_image_parameters
+                                    and not show_invalid_float_message
+                                    and not show_invalid_int_message):
 
                                     textbutton "Rotate left ( {b}[rotate_var]{/b} )" action [
                                         SetVariable("rotate_var", rotate_var - rotate_range),
                                         Jump("restart_image")
-                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 hover_background hover_color
 
                                     textbutton "Rotate right ( {b}[rotate_var]{/b} )" action [
                                         SetVariable("rotate_var", rotate_var + rotate_range),
                                         Jump("restart_image")
-                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background hover_color
 
                                     if (not show_input_frame
                                         and not image_loading_error
                                         and not delete_query
                                         and not delete_query_data_pos_file
                                         and not show_stop_message
-                                        and not show_current_image_parameters):
+                                        and not show_current_image_parameters
+                                        and not show_invalid_float_message
+                                        and not show_invalid_int_message):
                                         textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" action [
                                             SetVariable("zoom_var", zoom_var + zoom_range),
                                             Jump("restart_image")
@@ -1634,7 +1149,9 @@ screen image_move():
                                         and not delete_query
                                         and not delete_query_data_pos_file
                                         and not show_stop_message
-                                        and not show_current_image_parameters):
+                                        and not show_current_image_parameters
+                                        and not show_invalid_float_message
+                                        and not show_invalid_int_message):
                                         textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
 
                                     if (not show_input_frame
@@ -1642,35 +1159,39 @@ screen image_move():
                                         and not delete_query
                                         and not delete_query_data_pos_file
                                         and not show_stop_message
-                                        and not show_current_image_parameters):
+                                        and not show_current_image_parameters
+                                        and not show_invalid_float_message
+                                        and not show_invalid_int_message):
                                         textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" action [
                                             SetVariable("zoom_var", zoom_var - zoom_range), Jump("restart_image")
-                                            ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color
 
                                     if (show_input_frame
                                         and not image_loading_error
                                         and not delete_query
                                         and not delete_query_data_pos_file
                                         and not show_stop_message
-                                        and not show_current_image_parameters):
-                                        textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                        and not show_current_image_parameters
+                                        and not show_invalid_float_message
+                                        and not show_invalid_int_message):
+                                        textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color
 
                                     textbutton "Xalign +   ( {b}[xalign_var:.2f]{/b} )" action [
                                         SetVariable("xalign_var", xalign_var + xalign_range),
                                         Jump("restart_image")
-                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 hover_background hover_color
 
                                     textbutton "Xalign -   ( {b}[xalign_var:.2f]{/b} )" action [
                                         SetVariable("xalign_var", xalign_var - xalign_range),
                                         Jump("restart_image")
-                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background hover_color
 
                                     textbutton "Yalign +   ( {b}[yalign_var:.2f]{/b} )" action [ SetVariable("yalign_var", yalign_var + yalign_range), Jump("restart_image")
-                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 hover_background hover_color
 
                                     textbutton "Yalign -   ( {b}[yalign_var:.2f]{/b} )" action [
                                         SetVariable("yalign_var", yalign_var - yalign_range), Jump("restart_image")
-                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background hover_color
 
                                 if (layer == -1
                                     or show_input_frame
@@ -1678,24 +1199,25 @@ screen image_move():
                                     or delete_query
                                     or delete_query_data_pos_file
                                     or show_stop_message
-                                    or show_current_image_parameters):
+                                    or show_current_image_parameters
+                                    or show_invalid_float_message
+                                    or show_invalid_int_message):
 
                                     textbutton "Rotate left ( {b}[rotate_var]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
 
-
-                                    textbutton "Rotate right ( {b}[rotate_var]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                    textbutton "Rotate right ( {b}[rotate_var]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color
 
                                     textbutton "Zoom +   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
 
-                                    textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                    textbutton "Zoom -   ( {b}[zoom_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color
 
                                     textbutton "Xalign +   ( {b}[xalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
 
-                                    textbutton "Xalign -   ( {b}[xalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                    textbutton "Xalign -   ( {b}[xalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color
 
                                     textbutton "Yalign +   ( {b}[yalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28
 
-                                    textbutton "Yalign -   ( {b}[yalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color hover_background second_hover_color
+                                    textbutton "Yalign -   ( {b}[yalign_var:.2f]{/b} )" style "ipt_button" text_style "ipt_button_text" xsize 204 ysize 28 background second_button_color
 
                             vbox:
                                 hbox:
@@ -1705,38 +1227,58 @@ screen image_move():
                                             and not delete_query
                                             and not delete_query_data_pos_file
                                             and not show_stop_message
-                                            and not show_current_image_parameters):
+                                            and not show_current_image_parameters
+                                            and not show_invalid_float_message
+                                            and not show_invalid_int_message):
 
-                                            textbutton "+" action [
-                                                SetVariable("rotate_range", rotate_range + 1)
-                                            ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            if rotate_range < 360:
+                                                textbutton "+" action [
+                                                    SetVariable("rotate_range", rotate_range + 1)
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background hover_color
 
-                                            textbutton "+" action [
-                                                SetVariable("zoom_range", zoom_range + 0.01)
-                                            ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            if rotate_range >= 360:
+                                                textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
 
-                                            textbutton "+" action [
-                                                SetVariable("xalign_range", xalign_range + 0.01)
-                                            ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            if zoom_range < 1.00:
+                                                textbutton "+" action [
+                                                    SetVariable("zoom_range", zoom_range + 0.01)
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background hover_color
 
-                                            textbutton "+" action [
-                                                SetVariable("yalign_range", yalign_range + 0.01)
-                                            ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            if zoom_range >= 1.00:
+                                                textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
+
+                                            if xalign_range < 1.00:
+                                                textbutton "+" action [
+                                                    SetVariable("xalign_range", xalign_range + 0.01)
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background hover_color
+
+                                            if xalign_range >= 1.00:
+                                                textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
+
+                                            if yalign_range < 1.00:
+                                                textbutton "+" action [
+                                                    SetVariable("yalign_range", yalign_range + 0.01)
+                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background hover_color
+
+                                            if yalign_range >= 1.00:
+                                                textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
 
                                         if (show_input_frame
                                             or image_loading_error
                                             or delete_query
                                             or delete_query_data_pos_file
                                             or show_stop_message
-                                            or show_current_image_parameters):
+                                            or show_current_image_parameters
+                                            or show_invalid_float_message
+                                            or show_invalid_int_message):
 
-                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
 
-                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
 
-                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
 
-                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            textbutton "+" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
 
                                     vbox:
                                         if (not show_input_frame
@@ -1744,26 +1286,28 @@ screen image_move():
                                             and not delete_query
                                             and not delete_query_data_pos_file
                                             and not show_stop_message
-                                            and not show_current_image_parameters):
+                                            and not show_current_image_parameters
+                                            and not show_invalid_float_message
+                                            and not show_invalid_int_message):
 
                                             textbutton " Rotate range: {b}[rotate_range]{/b}" action [
                                                 Jump("input_rotate")
-                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 background second_button_color hover_background "#adf19f"
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 background second_button_color hover_background hover_color
 
                                             textbutton " Zoom range: {b}[zoom_range:.2f]{/b}" action [
                                                 Jump("input_zoom")
-                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 hover_background hover_color
 
                                             textbutton " Xalign range: {b}[xalign_range:.2f]{/b}" action [
                                                 Jump("input_xalign")
-                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 background second_button_color hover_background "#adf19f"
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 background second_button_color hover_background hover_color
 
                                             textbutton " Yalign range: {b}[yalign_range:.2f]{/b}" action [
                                                 Jump("input_yalign")
-                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48
+                                            ] style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 hover_background hover_color
 
                                         else:
-                                            textbutton " Rotate range: {b}" style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 background second_button_color
+                                            textbutton " Rotate range: {b}[rotate_range]{/b}" style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48 background second_button_color
 
                                             textbutton " Zoom range: {b}[zoom_range:.2f]{/b}" style "ipt_button" text_style "ipt_button_text" xsize 170 ysize 48
 
@@ -1777,39 +1321,58 @@ screen image_move():
                                             and not delete_query
                                             and not delete_query_data_pos_file
                                             and not show_stop_message
-                                            and not show_current_image_parameters):
+                                            and not show_current_image_parameters
+                                            and not show_invalid_float_message
+                                            and not show_invalid_int_message):
 
-                                            textbutton "-" action [
-                                                    SetVariable("rotate_range", rotate_range - 1), Jump("program_queue")
-                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            if rotate_range > 0:
+                                                textbutton "-" action [
+                                                        SetVariable("rotate_range", rotate_range - 1)
+                                                    ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background hover_color
 
-                                            textbutton "-" action [
-                                                    SetVariable("zoom_range", zoom_range - 0.01),
-                                                    Jump("program_queue")
-                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            if rotate_range <= 0:
+                                                textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
 
-                                            textbutton "-" action [
-                                                    SetVariable("xalign_range", xalign_range - 0.01), Jump("program_queue")
-                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            if zoom_range > 0:
+                                                textbutton "-" action [
+                                                        SetVariable("zoom_range", zoom_range - 0.01)
+                                                    ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background hover_color
 
-                                            textbutton "-" action [
-                                                    SetVariable("yalign_range", yalign_range - 0.01), Jump("program_queue")
-                                                ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            if zoom_range <= 0:
+                                                textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
+
+                                            if xalign_range > 0:
+                                                textbutton "-" action [
+                                                        SetVariable("xalign_range", xalign_range - 0.01)
+                                                    ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background hover_color
+
+                                            if xalign_range <= 0:
+                                                textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
+
+                                            if yalign_range > 0:
+                                                textbutton "-" action [
+                                                        SetVariable("yalign_range", yalign_range - 0.01)
+                                                    ] style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background hover_color
+
+                                            if yalign_range <= 0:
+                                                textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
 
                                         if (show_input_frame
                                             or image_loading_error
                                             or delete_query
                                             or delete_query_data_pos_file
                                             or show_stop_message
-                                            or show_current_image_parameters):
+                                            or show_current_image_parameters
+                                            or show_invalid_float_message
+                                            or show_invalid_int_message):
 
-                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
 
-                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
 
-                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color hover_background second_hover_color
+                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background first_pm_button_color
 
-                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color hover_background second_hover_color
+                                            textbutton "-" style "ipt_pm_button" text_style "ipt_button_text" text_xalign 0.5 xsize 24 ysize 48 background second_pm_button_color
 
                                 hbox:
                                     if (layer != -1
@@ -1818,7 +1381,9 @@ screen image_move():
                                         and not delete_query
                                         and not delete_query_data_pos_file
                                         and not show_stop_message
-                                        and not show_current_image_parameters):
+                                        and not show_current_image_parameters
+                                        and not show_invalid_float_message
+                                        and not show_invalid_int_message):
 
                                         python:
                                             current_layer = get_selected_layer()
@@ -1828,32 +1393,31 @@ screen image_move():
                                                 textbutton "{color=#cb1e1e}Flip h" action [
                                                     SetVariable("h_flip", False),
                                                     Jump("restart_image")
-                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background first_pm_button_color hover_background second_hover_color
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background first_pm_button_color hover_background hover_color
 
                                             else:
                                                 textbutton "{color=#4f7649}Flip h" action [
                                                     SetVariable("h_flip", True),
                                                     Jump("restart_image")
-                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background first_pm_button_color hover_background second_hover_color
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background first_pm_button_color hover_background hover_color
 
                                         if current_layer != -1:
                                             if v_flip:
                                                 textbutton "{color=#cb1e1e}Flip v" action [
                                                     SetVariable("v_flip", False),
                                                     Jump("restart_image")
-                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background second_button_color hover_background second_hover_color
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background second_button_color hover_background hover_color
 
                                             else:
                                                 textbutton "{color=#4f7649}Flip v" action [
                                                     SetVariable("v_flip", True),
                                                     Jump("restart_image")
-                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background second_button_color hover_background second_hover_color
+                                                ] style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background second_button_color hover_background hover_color
 
                                     else:
+                                        textbutton "Flip h" style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background first_pm_button_color
 
-                                        textbutton "Flip h" style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background first_pm_button_color hover_background second_hover_color
-
-                                        textbutton "Flip v" style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background second_button_color hover_background second_hover_color
+                                        textbutton "Flip v" style "ipt_button" text_style "ipt_button_text" xsize 109 ysize 32 text_size 14 background second_button_color
 
                         textbutton "{color=0a2bb5}Estimated maximum number of layers: [layers_max]" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
@@ -1865,10 +1429,11 @@ screen image_move():
                                 and not delete_query_data_pos_file
                                 and not show_stop_message
                                 and not show_invalid_float_message
-                                and not show_current_image_parameters):
+                                and not show_current_image_parameters
+                                and not show_invalid_int_message):
                                 textbutton "{color=#4f7649}Image size:\nWidth = [image_width] | Height = [image_height]\nBytes / pixel = [image_bytes_pixel]" action [
                                     Jump("input_image_size")
-                                ] style "ipt_button" text_style "ipt_button_text" xsize 262 ysize 60 background second_button_color hover_background second_hover_color
+                                ] style "ipt_button" text_style "ipt_button_text" xsize 262 ysize 60 background second_button_color hover_background hover_color
 
                             if (not show_input_frame
                                 and not show_stop_message
@@ -1878,19 +1443,11 @@ screen image_move():
                                 and not show_stop_message
                                 and not show_invalid_float_message
                                 and not show_current_image_parameters
-                                and not layer == -1):
+                                and not layer == -1
+                                and not show_invalid_int_message):
                                 textbutton "{color=#4f7649}Get parameters\nof the last\nloaded image." action [
                                     Jump("get_image_info")
-                                    ] style "ipt_button" text_style "ipt_button_text" xsize 160 ysize 60 background first_pm_button_color hover_background second_hover_color
-
-                            if (show_input_frame
-                                or image_loading_error
-                                or delete_query
-                                or delete_query_data_pos_file
-                                or show_stop_message
-                                or show_invalid_float_message
-                                or show_current_image_parameters):
-                                textbutton "Image size:\nWidth = [image_width] | Height = [image_height]\nBytes / pixel = [image_bytes_pixel]" style "ipt_button" text_style "ipt_button_text" xsize 262 ysize 60 background second_button_color hover_background second_hover_color
+                                    ] style "ipt_button" text_style "ipt_button_text" xsize 160 ysize 60 background first_pm_button_color hover_background hover_color
 
                             if (show_input_frame
                                 or image_loading_error
@@ -1899,8 +1456,19 @@ screen image_move():
                                 or show_stop_message
                                 or show_invalid_float_message
                                 or show_current_image_parameters
-                                or layer == -1):
-                                textbutton "Get parameters\nof the last\nloaded image." style "ipt_button" text_style "ipt_button_text" xsize 160 ysize 60 background first_pm_button_color hover_background second_hover_color
+                                or show_invalid_int_message):
+                                textbutton "Image size:\nWidth = [image_width] | Height = [image_height]\nBytes / pixel = [image_bytes_pixel]" style "ipt_button" text_style "ipt_button_text" xsize 262 ysize 60 background second_button_color
+
+                            if (show_input_frame
+                                or image_loading_error
+                                or delete_query
+                                or delete_query_data_pos_file
+                                or show_stop_message
+                                or show_invalid_float_message
+                                or show_current_image_parameters
+                                or layer == -1
+                                or show_invalid_int_message):
+                                textbutton "Get parameters\nof the last\nloaded image." style "ipt_button" text_style "ipt_button_text" xsize 160 ysize 60 background first_pm_button_color
 
                         textbutton "{color=0a2bb5}Number of active layers: [layer + 1]" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
@@ -1911,11 +1479,12 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Move layers simultaneously: on" action [
                                 SetVariable("move_layers_simultan", False),
                                 SetVariable("selected_layer", 0)
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background hover_color
 
                             textbutton "Move layers individually: off" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
@@ -1926,8 +1495,9 @@ screen image_move():
                                 or delete_query_data_pos_file
                                 or show_stop_message
                                 or show_invalid_float_message
-                                or show_current_image_parameters)):
-                                textbutton "{color=#4f7649}Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422 background second_button_color hover_background second_hover_color
+                                or show_current_image_parameters
+                                or show_invalid_int_message)):
+                                textbutton "{color=#4f7649}Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422 background second_button_color
 
                                 textbutton "Move layers individually: off" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
@@ -1938,14 +1508,15 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
-                            textbutton "Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
+                            textbutton "Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                             textbutton "{color=#4f7649}Move layers individually: on" action [
                                 SetVariable("move_layers_simultan", True),
                                 Hide("image_loading_error"),
                                 SetVariable("image_found", False)
-                                ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
+                                ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if (not move_layers_simultan
                             and (show_input_frame
@@ -1954,8 +1525,9 @@ screen image_move():
                                 or delete_query_data_pos_file
                                 or show_stop_message
                                 or show_invalid_float_message
-                                or show_current_image_parameters)):
-                                textbutton "Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                                or show_current_image_parameters
+                                or show_invalid_int_message)):
+                                textbutton "Move layers simultaneously: off" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                                 textbutton "Move layers individually: off" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
@@ -1967,12 +1539,13 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Selected layer: [selected_layer + 1]" action [
                                 Hide("image_loading_error"),
                                 SetVariable("image_found", False),
                                 Jump("restart_layer_counter")
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background hover_color
 
                         if (layer != -1
                             and (show_input_frame
@@ -1981,15 +1554,16 @@ screen image_move():
                                 or delete_query_data_pos_file
                                 or show_stop_message
                                 or show_invalid_float_message
-                                or show_current_image_parameters)):
-                                textbutton "Selected layer: [selected_layer + 1]" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                                or show_current_image_parameters
+                                or show_invalid_int_message)):
+                                textbutton "Selected layer: [selected_layer + 1]" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                         if layer == -1:
-                            textbutton "No layer loaded" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            textbutton "No layer loaded" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                         if (layer != -1
                             and move_layers_simultan):
-                            textbutton "All layers selected" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            textbutton "All layers selected" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                         if (not move_layers_simultan
                             and not show_input_frame
@@ -1998,7 +1572,8 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Input file location":
                                 id "image_move_scale_minus"
                                 action [
@@ -2006,7 +1581,7 @@ screen image_move():
                                 SetVariable("image_move_active", True),
                                 SetVariable("image_loading_error", False),
                                 Jump("input_image")
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if (move_layers_simultan
                             or show_input_frame
@@ -2015,7 +1590,8 @@ screen image_move():
                             or delete_query_data_pos_file
                             or show_stop_message
                             or show_invalid_float_message
-                            or show_current_image_parameters):
+                            or show_current_image_parameters
+                            or show_invalid_int_message):
                             textbutton "Input file location" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
                         if (layer > -1
@@ -2025,7 +1601,8 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Delete layer(s)" action [
                                 SetVariable("delete_mode", "layers"),
                                 SetVariable("selected_layer", -1),
@@ -2033,7 +1610,7 @@ screen image_move():
                                 Hide("message_delete_layers"),
                                 SetVariable("delete_query", True),
                                 SetVariable("stop_loading_layers", False),
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background hover_color
 
                         if (layer == -1
                             or show_input_frame
@@ -2042,8 +1619,9 @@ screen image_move():
                             or delete_query_data_pos_file
                             or show_stop_message
                             or show_invalid_float_message
-                            or show_current_image_parameters):
-                            textbutton "Delete layer(s)" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            or show_current_image_parameters
+                            or show_invalid_int_message):
+                            textbutton "Delete layer(s)" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                         if (not show_input_frame
                             and layer > -1
@@ -2052,13 +1630,14 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#cb1e1e}Continue game and delete image(s){/color}" action [
                                 SetVariable("delete_mode", "continue"),
                                 SetVariable("delete_query", True),
                                 SetVariable("ipt_show_hidden_button", True),
                                 SetVariable("image_move_menu_slide_down", False)
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if (not show_input_frame
                             and layer == -1
@@ -2067,10 +1646,11 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Continue game" action [
                                 Jump("load_dev_menu_save")
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if (show_input_frame
                             or image_loading_error
@@ -2078,7 +1658,8 @@ screen image_move():
                             or delete_query_data_pos_file
                             or show_stop_message
                             or show_invalid_float_message
-                            or show_current_image_parameters):
+                            or show_current_image_parameters
+                            or show_invalid_int_message):
                             textbutton "Continue game" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
                         if (not show_saving
@@ -2089,12 +1670,13 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Save layer data" action [
                                 SetVariable("delete_mode", "continue"),
                                 SetVariable("show_saving", True),
                                 Jump("anim_progress_bar")
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background hover_color
 
                         if (layer == -1
                             or show_input_frame
@@ -2103,8 +1685,9 @@ screen image_move():
                             or delete_query_data_pos_file
                             or show_stop_message
                             or show_invalid_float_message
-                            or show_current_image_parameters):
-                            textbutton "Save layer data" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            or show_current_image_parameters
+                            or show_invalid_int_message):
+                            textbutton "Save layer data" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                         if (show_saving
                             and not show_input_frame
@@ -2113,7 +1696,8 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             frame:
                                 xalign 0.5
                                 yalign 0.5
@@ -2143,7 +1727,8 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "Delete layer data" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
                         if (persistent.data_position_file
@@ -2154,10 +1739,11 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Delete layer data" action [
                                 SetVariable("delete_query_data_pos_file", True)
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if (show_input_frame
                             or image_loading_error
@@ -2165,7 +1751,8 @@ screen image_move():
                             or delete_query_data_pos_file
                             or show_stop_message
                             or show_invalid_float_message
-                            or show_current_image_parameters):
+                            or show_current_image_parameters
+                            or show_invalid_int_message):
                             textbutton "Delete layer data" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
 
                         if (persistent.data_position_file
@@ -2176,7 +1763,8 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             frame:
                                 xalign 0.5
                                 yalign 0.5
@@ -2205,27 +1793,28 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Hide current menu" action [
                                 Hide("image_loading_error"),
                                 Hide("message_delete_layers"),
                                 Hide("locationput"),
                                 SetVariable("hide_current_menu", True)
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background hover_color
 
                         else:
-                            textbutton "Hide current menu" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            textbutton "Hide current menu" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                         if not slide_image_move_menu_right:
                             textbutton "{color=#4f7649}Menu on the right" action [
                                 SetVariable("slide_image_move_menu_right", True),
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if slide_image_move_menu_right:
                             textbutton "{color=#4f7649}Menu on the left" action [
                                 SetVariable("image_move_menu_startet", False),
                                 SetVariable("slide_image_move_menu_right", False),
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if (persistent.data_position_file
                             and not show_input_frame
@@ -2234,21 +1823,22 @@ screen image_move():
                             and not delete_query_data_pos_file
                             and not show_stop_message
                             and not show_invalid_float_message
-                            and not show_current_image_parameters):
+                            and not show_current_image_parameters
+                            and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Show saved layer data" action [
                                 Hide("image_move"),
                                 Hide("image_move_hidden"),
                                 Jump("show_layer_pos_txt")
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background hover_color
 
                         else:
-                            textbutton "Show saved layer data" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background second_hover_color
+                            textbutton "Show saved layer data" style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color
 
                     vbox:
                         textbutton "{color=#4f7649}+":
                             action [
                                 Function(resize_image_move, + 0.01)
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 20 ysize 122 background "#6bc059" hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 20 ysize 122 background "#6bc059" hover_background hover_color
 
                         fixed:
                             xsize 20
@@ -2258,14 +1848,14 @@ screen image_move():
                         textbutton "{color=#4f7649}-":
                             action [
                                 Function(resize_image_move, - 0.01)
-                            ] style "ipt_button" text_style "ipt_button_text" xsize 20 ysize 122 background "#6bc059" hover_background second_hover_color
+                            ] style "ipt_button" text_style "ipt_button_text" xsize 20 ysize 122 background "#6bc059" hover_background hover_color
 
                 textbutton "{color=#4f7649}Open/Close Console (SHIFT + F1)" action [
                         ToggleVariable("mini_console_open")
-                    ] style "ipt_button" text_style "ipt_button_text" xsize 442
-
+                    ] style "ipt_button" text_style "ipt_button_text" xsize 442 hover_background hover_color
 
                 if show_input_frame:
+                    timer 0.01 action Function(resize_image_move, 0.00)
                     textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
                     frame:
                         background Solid("#84ec6e")
@@ -2289,7 +1879,7 @@ screen image_move():
                         SetVariable("show_current_image_parameters", False),
                         SetVariable("return_button", True),
                         Jump("program_queue")
-                        ] xalign 1.0 yalign 1.0 text_size 16 style "ipt_button" text_style "ipt_button_text"
+                        ] xalign 1.0 yalign 1.0 text_size 16 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                         vbox:
                             if show_file_input:
@@ -2316,44 +1906,18 @@ screen image_move():
                             if show_yalign_input:
                                 text "{color=4f7649}Please enter the yalign range, then press Enter:" size 18 style("ipt_text")
 
-                            if show_file_input:
-                                timer 0.05 repeat True action [
-                                Function(update_location_cursor),
-                                Function(update_cursor_blink)
-                                ]
-
-                                fixed:
-                                    # Sichtbare Textdarstellung
-                                    text "[get_display_text()]":
-                                        size 16
-                                        style("ipt_text")
-                                        color "#0a2bb5"
-                                        xmaximum 553
-
-                                    # Sichtbare Cursordarstellung
-                                    showif cursor_visible:
-                                        text "|":
-                                            size 16
-                                            style("ipt_text")
-                                            color "#0a2bb5"
-                                            xpos px_before_cursor
-                                            ypos 0
-
                             input:
-                                # Eingabe unverändert speichern (unsichtbar)
                                 if show_file_input:
                                     id "location_input"
                                     value VariableInputValue("location_input", returnable = True)
-
-                                    xsize 10000
-                                    length 170
-                                    size 16
-                                    style("ipt_text")
-                                    color "#00000000"
+                                    xmaximum 435
                                     multiline True
+                                    length 200
+                                    size 16
+                                    color "#0a2bb5"
+                                    style("ipt_text")
 
-                                if (show_rotate_input
-                                    or image_width_entered
+                                if (image_width_entered
                                     or image_height_entered):
                                         id "number_input"
                                         value VariableInputValue("number_input", returnable = True)
@@ -2361,18 +1925,28 @@ screen image_move():
                                         allow "0123456789"
                                         length 4
                                         size 16
-                                        style("ipt_text")
                                         color "#0a2bb5"
+                                        style("ipt_text")
 
-                                if image_by_pi_entered:
+                                if show_rotate_input:
                                     id "number_input"
                                     value VariableInputValue("number_input", returnable = True)
 
                                     allow "0123456789"
                                     length 3
                                     size 16
-                                    style("ipt_text")
                                     color "#0a2bb5"
+                                    style("ipt_text")
+
+                                if image_by_pi_entered:
+                                    id "number_input"
+                                    value VariableInputValue("number_input", returnable = True)
+
+                                    allow "0123456789"
+                                    length 2
+                                    size 16
+                                    color "#0a2bb5"
+                                    style("ipt_text")
 
                                 if (show_input_frame
                                     and (show_zoom_input
@@ -2385,8 +1959,8 @@ screen image_move():
                                         length 4
                                         exclude "{}"
                                         size 16
-                                        style("ipt_text")
                                         color "#0a2bb5"
+                                        style("ipt_text")
 
                 if image_loading_error:
                     timer 0.01 action Function(resize_image_move, 0.00)
@@ -2395,13 +1969,13 @@ screen image_move():
                         padding(4, 2, 4, 2)
                         xsize 442
                         ysize 150
-                        at center
+                        xalign 0.5 yalign 0.5
 
-                        label "{color=#cb1e1e}{b}Image file not found.{/b}\n\nPlease enter the correct folder path and the file name, including the file extension.\n\nSupported file types: png, jpg, jpeg, webp, avif, svg" text_size 16
+                        label "{color=#cb1e1e}{b}Image file not found.{/b}\n\nPlease enter the correct folder path and the file name, including the file extension.\n\nSupported file types: png, jpg, jpeg, webp, avif, svg" text_style "ipt_button_text"
 
                         textbutton "{color=#4f7649}Return" action [
                         SetVariable("image_loading_error", False)
-                        ] at right text_size 16
+                        ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if delete_query:
                     timer 0.01 action Function(resize_image_move, 0.00)
@@ -2410,13 +1984,13 @@ screen image_move():
                         padding(4, 2, 4, 2)
                         xsize 442
                         ysize 150
-                        at center
+                        xalign 0.5 yalign 0.5
 
                         vbox:
                             xalign 0.5
                             ypos 15
                             spacing 10
-                            label "{color=#cb1e1e}Are you sure you want to delete all layers?" xalign 0.5 text_size 16
+                            label "{color=#cb1e1e}Are you sure you want to delete all layers?" xalign 0.5 text_style "ipt_button_text"
 
                             hbox:
                                 xalign 0.5
@@ -2424,21 +1998,21 @@ screen image_move():
                                 spacing 100
 
                                 if delete_mode == "layers":
-                                    textbutton "{color=#cb1e1e}Yes" xsize 50 text_size 16 action [
+                                    textbutton "{color=#cb1e1e}Yes" xsize 50 action [
                                     SetVariable("layers_max", 0),
                                     SetVariable("stop_loading_layers", False),
                                     Jump("delete_layers_only")
-                                    ]
+                                    ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 if delete_mode == "continue":
-                                    textbutton "{color=#cb1e1e}Yes" xsize 50 text_size 16 action [
+                                    textbutton "{color=#cb1e1e}Yes" xsize 50 action [
                                         SetVariable("move_into_screen", False),
                                         Jump("delete_image_move")
-                                    ]
+                                    ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
-                                textbutton "{color=#238626}No" xsize 50 text_size 16 action [
-                                    SetVariable("delete_query", False),
-                                ]
+                                textbutton "{color=#238626}No" xsize 50 action [
+                                    SetVariable("delete_query", False)
+                                ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if delete_query_data_pos_file:
                     timer 0.01 action Function(resize_image_move, 0.00)
@@ -2447,13 +2021,14 @@ screen image_move():
                         padding(4, 2, 4, 2)
                         xsize 442
                         ysize 150
-                        at center
+                        xalign 0.5
+                        yalign 0.5
 
                         vbox:
                             xalign 0.5
                             ypos 15
                             spacing 10
-                            label "{color=#cb1e1e}Are you sure you want to delete all position data from the file?" xalign 0.5 text_size 16
+                            label "{color=#cb1e1e}Are you sure you want to delete all position data from the file?" xalign 0.5 text_style "ipt_button_text"
 
                             hbox:
                                 xalign 0.5
@@ -2464,12 +2039,12 @@ screen image_move():
                                 SetVariable("delete_query_data_pos_file", False),
                                 SetVariable("show_deleting", True),
                                 Jump("anim_progress_bar")
-                                ]
+                                ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 textbutton "{color=#238626}No" xsize 50 text_size 16 action [
                                 SetVariable("delete_query_data_pos_file", False),
                                 Jump("program_queue")
-                                ]
+                                ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if show_stop_message:
                     timer 0.01 action Function(resize_image_move, 0.00)
@@ -2478,19 +2053,19 @@ screen image_move():
                         padding(4, 2, 4, 2)
                         xsize 442
                         ysize 150
-                        at center
+                        xalign 0.5
+                        yalign 0.5
 
                         vbox:
                             xalign 0.5
                             ypos 15
                             spacing 10
-                            label "{color=#cb1e1e}Maximum number of layers reached." xalign 0.5 text_size 16
-
-                            label "{color=#cb1e1e}Please delete the current layers." xalign 0.5 text_size 16
+                            label "{color=#cb1e1e}Maximum number of layers reached." xalign 0.5 text_style "ipt_button_text"
+                            label "{color=#cb1e1e}Please delete the current layers." xalign 0.5 text_style "ipt_button_text"
 
                         textbutton "Return" action [
                         SetVariable("show_stop_message", False)
-                        ] at right text_size 16
+                        ] xalign 0.5 yalign 0.5 text_size 16 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if show_invalid_float_message:
                     timer 0.01 action Function(resize_image_move, 0.00)
@@ -2499,18 +2074,38 @@ screen image_move():
                         padding(4, 2, 4, 2)
                         xsize 442
                         ysize 150
-                        at center
+                        xalign 0.5
+                        yalign 0.5
 
                         vbox:
                             xalign 0.5
                             ypos 15
-                            label "{color=#cb1e1e}Invalid input." xsize 416 text_size 16
-
-                            label "{color=#cb1e1e}Only values between 0.01 and 1.00 are valid." xsize 416 text_size 16
+                            label "{color=#cb1e1e}Invalid input." xsize 416 text_style "ipt_button_text"
+                            label "{color=#cb1e1e}Only values between 0.01 and 1.00 are valid." xsize 416 text_style "ipt_button_text"
 
                         textbutton "Return" action [
                         SetVariable("show_invalid_float_message", False)
-                        ] at right text_size 16
+                        ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
+
+                if show_invalid_int_message:
+                    timer 0.01 action Function(resize_image_move, 0.00)
+                    frame:
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 442
+                        ysize 150
+                        xalign 0.5
+                        yalign 0.5
+
+                        vbox:
+                            xalign 0.5
+                            ypos 15
+                            label "{color=#cb1e1e}Invalid input." xsize 416  text_style "ipt_button_text"
+                            label "{color=#cb1e1e}Only values between 1 and 360 are valid." xsize 416  text_style "ipt_button_text"
+
+                        textbutton "Return" action [
+                            SetVariable("show_invalid_int_message", False)
+                            ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if show_current_image_parameters:
                     timer 0.01 action Function(resize_image_move, 0.00)
@@ -2519,15 +2114,13 @@ screen image_move():
                         padding(4, 2, 4, 2)
                         xsize 442
                         ysize 150
-                        at center
+                        xalign 1.0 yalign 1.0
 
                         vbox:
                             ypos 15
                             label "{color=0a2bb5}Parameters of the last loaded image:\n" text_size 16
-
-                            label "{color=0a2bb5}Width = [info['width']] | Height = [info['height']]" text_size 16 at center
-
-                            label "{color=0a2bb5}Bytes per pixel = [info['bpp']]" text_size 16 at center
+                            label "{color=0a2bb5}Width = [info['width']] | Height = [info['height']]" text_style "ipt_button_text" xalign 0.5
+                            label "{color=0a2bb5}Bytes per pixel = [info['bpp']]" text_style "ipt_button_text" xalign 0.5
 
                         hbox:
                             xsize 402 yalign 1.0
@@ -2536,11 +2129,11 @@ screen image_move():
                             SetVariable("image_height", info['height']),
                             SetVariable("image_bytes_pixel", info['bpp']),
                             Function(update_layers_max)
-                            ] xalign 0.0 text_size 16
+                            ] xalign 0.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                         textbutton "{color=#4f7649}Return" action [
                         SetVariable("show_current_image_parameters", False)
-                        ] xalign 1.0 yalign 1.0 text_size 16
+                        ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
 
 label program_queue:
@@ -2556,7 +2149,6 @@ label program_queue:
     call screen image_move
 
     $ return_button = False
-
     jump program_queue
 
 
@@ -2591,7 +2183,8 @@ label list_image_files:
                     renpy.jump("load_image")
         else:
             image_loading_error = True
-            renpy.pause(hard = True)
+
+    jump program_queue
 
 
 label input_image:
@@ -2603,7 +2196,7 @@ label input_image:
     $ show_file_input = True
     $ location_input = "images/"
 
-    call screen wait_enter_only
+    call screen image_move
 
     if location_input == "images/":
         jump input_image
@@ -2622,7 +2215,7 @@ label input_rotate:
     $ show_rotate_input = True
     $ number_input = ""
 
-    call screen wait_enter_only
+    call screen image_move
 
     $ show_input_frame = False
     $ show_rotate_input = False
@@ -2631,7 +2224,14 @@ label input_rotate:
         $ number_input = "1"
 
     $ rotate_range = int(number_input)
-    jump program_queue
+
+    if (rotate_range < 0
+        or rotate_range > 360):
+        $ rotate_range = 1
+        $ show_input_frame = False
+        $ show_invalid_int_message = True
+
+    call program_queue
 
 
 label input_zoom:
@@ -2640,7 +2240,7 @@ label input_zoom:
     $ float_input = ""
     $ float_value = 0.01
 
-    call screen wait_enter_only
+    call screen image_move
 
     $ show_input_frame = False
     $ show_zoom_input = False
@@ -2661,7 +2261,7 @@ label input_zoom:
         $ show_invalid_float_message = True
 
     $ zoom_range = float_value
-    jump program_queue
+    call program_queue
 
 
 label input_xalign:
@@ -2670,7 +2270,7 @@ label input_xalign:
     $ float_input = ""
     $ float_value = 0.01
 
-    call screen wait_enter_only
+    call screen image_move
 
     $ show_input_frame = False
     $ show_xalign_input = False
@@ -2691,7 +2291,7 @@ label input_xalign:
         $ show_invalid_float_message = True
 
     $ xalign_range = float_value
-    jump program_queue
+    call program_queue
 
 
 label input_yalign:
@@ -2700,7 +2300,7 @@ label input_yalign:
     $ float_input = ""
     $ float_value = 0.01
 
-    call screen wait_enter_only
+    call screen image_move
 
     $ show_input_frame = False
     $ show_yalign_input = False
@@ -2721,7 +2321,7 @@ label input_yalign:
         $ show_invalid_float_message = True
 
     $ yalign_range = float_value
-    jump program_queue
+    call program_queue
 
 
 label input_image_size:
@@ -2764,7 +2364,7 @@ label input_image_size:
         $ update_layers_max()
         $ return_button = True
 
-        jump program_queue
+        call program_queue
 
 
 label get_image_info:
@@ -2780,7 +2380,7 @@ label get_image_info:
 
     $ show_current_image_parameters = True
 
-    jump program_queue
+    call program_queue
 
 
 label load_dev_menu_save:
@@ -3210,6 +2810,7 @@ label delete_layer_data:
 transform search_projects_menu_hide:
     yalign 0.12
 
+
 transform search_projects_menu_show:
     yalign 0.12
     ease 0.3 yalign 0
@@ -3455,11 +3056,6 @@ screen search_progress():
                             Return()
                         ]
 
-
-init python:
-    import time
-    import shutil
-
     EXCLUDED_DIRS = ["launcher", "gui", "assets"]
 
     SEARCH_TEXT = "label start:"
@@ -3471,7 +3067,6 @@ init python:
         allowed_mountpoints = []
 
         try:
-
             # Informationen über die Laufwerke abfragen.
             result = subprocess.run(
                 [
@@ -3486,17 +3081,14 @@ init python:
                 check=True
             )
 
-
         except (
             subprocess.CalledProcessError,
             FileNotFoundError,
             OSError
         ):
-
             # Falls lsblk nicht ausgeführt werden kann,
             # keine Mountpoints zurückgeben.
             return []
-
 
         # Jede Zeile der lsblk-Ausgabe bearbeiten.
         for line in result.stdout.splitlines():
@@ -3547,7 +3139,6 @@ init python:
 
         diff = real - fake
 
-
         # Weiche Bewegung
 
         if diff > 15:
@@ -3564,12 +3155,10 @@ init python:
 
         fake += diff * speed
 
-
         # kleine Bewegung gegen Stillstand
 
         if real < 99 and fake < real:
             fake += 0.05
-
 
         # niemals vorauslaufen
 
@@ -3584,7 +3173,6 @@ init python:
 
         store.search_display_progress = fake
 
-
     def shorten_path(path, max_length=100):
         if len(path) <= max_length:
             return path
@@ -3596,7 +3184,6 @@ init python:
             + " ... "
             + path[-part_length:]
         )
-
 
     def search_thread(start_dir = None):
         output_file = os.path.join(
@@ -3613,7 +3200,6 @@ init python:
         store.search_current_file = ""
         store.search_current_path = ""
         start_time = time.time()
-
 
         # --------------------------------
         # Phase 1:
@@ -3654,8 +3240,6 @@ init python:
 
         total_files = len(all_files)
 
-
-
         # --------------------------------
         # Phase 2:
         # Dateien durchsuchen
@@ -3671,7 +3255,6 @@ init python:
 
             checked += 1
 
-
             # echter Fortschritt
 
             if total_files:
@@ -3681,7 +3264,6 @@ init python:
                 )
 
             else:
-
                 store.search_progress = 100
 
             store.search_status = (
@@ -3712,7 +3294,6 @@ init python:
 
         elapsed = time.time() - start_time
 
-
         # Ergebnisdatei schreiben
 
         try:
@@ -3739,7 +3320,6 @@ init python:
         store.search_status = (
             f"Search complete.  |  Search time: {elapsed:.2f} seconds.  |  {len(store.search_matches)} files found."
         )
-
 
         # Abschluss
 
@@ -3787,7 +3367,6 @@ init python:
             renpy.show_screen("message_window", message = "\n{}".format(e))
             renpy.transition(Dissolve(0.2))
             renpy.pause(hard = True)
-
 
     def project_clicked(project):
         message = ""
@@ -3855,9 +3434,7 @@ init python:
                     '    update_layers_max()\n'
                 )
 
-
                 if overlay_line not in original_lines:
-
                     # Entfernt alle leeren Zeilen am Anfang
                     while (
                         original_lines
@@ -3865,10 +3442,8 @@ init python:
                     ):
                         original_lines.pop(0)
 
-
                     # Entfernt unsichtbare Zeichen vor der ersten echten Zeile
                     if original_lines:
-
                         original_lines[0] = (
                             original_lines[0].lstrip(
                                 " \t\r\n\uFEFF"
@@ -3912,7 +3487,6 @@ init python:
                     )
 
                 else:
-
                     message = (
                         "{{color=#238626}}Line already exists:{{/color}}\n{}".format(
                             script_file
@@ -3935,7 +3509,6 @@ init python:
 
                 for filename in source_files:
                     source_file = None
-
 
                     # Erst scripts suchen
                     # danach game
@@ -3970,7 +3543,6 @@ init python:
                         )
 
                     else:
-
                         message += (
                             "\n\nWarning:\n"
                             "{} not found:\n{}"
@@ -4011,7 +3583,6 @@ init python:
                     )
 
                 else:
-
                     message += (
                         "\n\nWarning:\n"
                         "psutil folder not found:\n{}"
@@ -4019,7 +3590,6 @@ init python:
                             source_psutil
                         )
                     )
-
 
                 ##################
                 # Fonts kopieren #
@@ -4095,7 +3665,6 @@ init python:
                             target_font_file
                         )
                     )
-
 
             store.message_window_open = True
 
