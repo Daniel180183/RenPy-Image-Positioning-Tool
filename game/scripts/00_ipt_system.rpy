@@ -8,7 +8,7 @@ default ipt_show_hidden_button = True
 init -1 python:
 
     # -------------------------------------------------------------
-    # ISOLIERTE STYLES FÜR DAS TOOL DEFINIEREN (Präfix "ipt_")
+    # ISOLIERTE STYLES (Präfix "ipt_")
     # -------------------------------------------------------------
 
     # 1. Isolierter Text-Style
@@ -17,8 +17,6 @@ init -1 python:
     style.ipt_text.size = 14
     style.ipt_text.color = "#000000"
     style.ipt_text.outlines = [] # Verhindert, dass Text-Outlines geerbt werden
-    style.ipt_text.line_leading = 0
-    style.ipt_text.line_spacing = 0
 
     # NEU: Verhindert doppelte Zeilenabstände aus Fremdprojekten
     style.ipt_text.line_spacing = 0
@@ -62,6 +60,15 @@ init -1 python:
     style.ipt_center_button_text.insensitive_color = "#888888" # Text deaktiviert (Ausgegraut)
     style.ipt_center_button_text.xalign = 0.5
     style.ipt_center_button_text.yalign = 0.5
+
+    # Konsolen-Text-Style sauber isolieren
+    style.ipt_console_text = Style(style.default)
+    style.ipt_console_text.font = "DejaVuSansMono.ttf"
+    style.ipt_console_text.size = 10
+    style.ipt_console_text.color = "#00ff00"
+    style.ipt_console_text.line_spacing = 0
+    style.ipt_console_text.line_leading = 0
+    style.ipt_console_text.outlines = []
 
     # 4. Input-Field Style isolieren
     style.ipt_input = Style(style.input)

@@ -52,7 +52,7 @@ screen input(prompt):
 screen main_menu():
     tag menu
 
-    add ("ingame_background")
+    add ("background")
 
     frame:
         background Solid("#77c966")
