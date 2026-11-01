@@ -121,9 +121,6 @@ init python:
 # Layer(s) laden und positionieren #
 ####################################
 
-
-define config.rollback_enabled = False
-
 define UI_REFERENCE_WIDTH = 1000
 define UI_REFERENCE_HEIGHT = 720
 define UI_REFERENCE_SCALE_OFFSET = 0.95
@@ -143,14 +140,12 @@ init python:
         or persistent.scale_offset is None):
         persistent.scale_offset = 0.00
 
-
     # Berechnet den Skalierungsfaktor in Abhängigkeit der Projektauflösung.
     def get_ui_scale():
         return min(
             config.screen_width / UI_REFERENCE_WIDTH,
             config.screen_height / UI_REFERENCE_HEIGHT
         ) * (UI_REFERENCE_SCALE_OFFSET - persistent.scale_offset)
-
 
     def get_image_move_frame_size():
 
@@ -171,7 +166,6 @@ init python:
             )
 
         return render.width, render.height
-
 
     def resize_image_move(scale_factor):
         old_scale_offset = persistent.scale_offset
@@ -200,7 +194,6 @@ init python:
             else:
                 persistent.scale_offset = old_scale_offset
 
-
     # Bewegungszeit horizontal
     def get_move_duration_x():
         scale = get_ui_scale()
@@ -214,7 +207,6 @@ init python:
 
         else:
             return MOVE_REFERENCE_TIME_X * (current_distance / reference_distance)
-
 
     # Bewegungszeit vertikal
     def get_move_duration_y():
@@ -237,7 +229,6 @@ init python:
         # else:
         #     return MOVE_REFERENCE_TIME_Y * (current_distance / reference_distance)
 
-
     # Länge Bewegungsstrecke vertikal, Start image_move
     def get_move_yoffset():
         scale = get_ui_scale()
@@ -251,7 +242,6 @@ init python:
             return available_height
 
         return min(menu_height, available_height)
-
 
     def load_move_values():
         global move_yoffset
@@ -351,7 +341,7 @@ default hide_current_menu = False
 default move_into_screen = False
 default return_button = False
 default current_layer = None
-default enter_image = False
+default char_entered = False
 
 default move_yoffset = 0.0
 
@@ -997,46 +987,22 @@ screen image_move_hidden():
                 Call("program_queue")
             ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
 
-    if ipt_show_hidden_button:
         label "{[project_name_color]}[project_name]   v[project_version]{/color}" xalign 1.0 yalign 1.0 text_size 18
 
-    if ipt_show_hidden_button:
         textbutton "{color=#4f7649}Return to main menu" action [
             MainMenu(confirm = False)
         ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
 
 
-screen return_move_menu():
-    zorder 100
-
-    textbutton "{color=#4f7649}Return to image move menu" action [
-        SetVariable("hide_current_menu", False),
-        Hide("return_move_menu", Dissolve(0.2)),
-        Show("image_move")
-    ] xalign 0.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
-
-    label "{[project_name_color]}[project_name]   v[project_version] {/color}"  xalign 1.0 yalign 1.0 text_size 18
-
-    textbutton "{color=#4f7649}Return to main menu" action [
-        MainMenu(confirm = False)
-    ] xalign 1.0 yalign 0.0 style "ipt_button" text_style "ipt_button_text" text_size 8 hover_background hover_color
-
-
-screen image_move_restart():
-    timer 0.01 action [
-        Hide("image_move"),
-        Show("image_move")
-    ]
-
-
 screen image_move():
+    if renpy.in_rollback():
+        timer 0.01 action Return()
+
     if not reload_image_move:
         timer 0.01 repeat False action [
                 SetVariable("image_move_menu_startet", True),
                 SetVariable("move_into_screen", True)
             ]
-
-    timer 0.01 repeat False action Hide("image_move_restart")
 
     if not image_move_menu_slide_down:
         timer 0.5 repeat False action Return()
@@ -1089,7 +1055,7 @@ screen image_move():
         if (image_move_menu_slide_down
             and not show_input_frame
             and not return_button
-            and not enter_image):
+            and not char_entered):
             at move_down
 
         if (not image_move_menu_slide_down
@@ -1097,7 +1063,7 @@ screen image_move():
             at move_up
             timer 0.5 repeat False action [
                 SetVariable("return_button", False),
-                SetVariable("enter_image", False)
+                SetVariable("char_entered", False)
                 ]
 
         frame:
@@ -1652,6 +1618,7 @@ screen image_move():
                             and not show_current_image_parameters
                             and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Continue game" action [
+                                SetVariable("config.rollback_enabled", True),
                                 Return()
                             ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
@@ -1863,7 +1830,7 @@ screen image_move():
                         SetVariable("show_invalid_float_message", False),
                         SetVariable("show_current_image_parameters", False),
                         SetVariable("return_button", True),
-                        SetVariable("enter_image", True),
+                        SetVariable("char_entered", True),
                         Jump("program_queue")
                         ] xalign 1.0 yalign 1.0 text_size 16 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
@@ -1989,12 +1956,14 @@ screen image_move():
                                     textbutton "{color=#cb1e1e}Yes" xsize 50 action [
                                     SetVariable("layers_max", 0),
                                     SetVariable("stop_loading_layers", False),
+                                    SetVariable("config.rollback_enabled", True),
                                     Jump("delete_layers_only")
                                     ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 if delete_mode == "continue":
                                     textbutton "{color=#cb1e1e}Yes" xsize 50 action [
                                         SetVariable("move_into_screen", False),
+                                        SetVariable("config.rollback_enabled", True),
                                         Jump("delete_image_move")
                                     ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
@@ -2130,19 +2099,16 @@ screen image_move():
 
 
 label program_queue:
-    if rotate_range < 0:
-        $ rotate_range = 0
-    if zoom_range < 0:
-        $ zoom_range = 0.00
-    if xalign_range < 0:
-        $ xalign_range = 0.00
-    if yalign_range < 0:
-        $ yalign_range = 0.00
-
     window hide
-    call screen image_move
+
+    if not renpy.in_rollback():
+        $ config.rollback_enabled = False
+        call screen image_move
+
     window show
 
+    $ char_entered = False
+    $ ipt_show_hidden_button = True
     return
 
 
@@ -2183,10 +2149,11 @@ label input_image:
 
     $ show_input_frame = True
     $ show_file_input = True
-    $ enter_image = True
+    $ char_entered = True
     $ location_input = "images/"
 
-    call screen image_move
+    if not renpy.in_rollback():
+        call screen image_move
 
     if location_input == "images/":
         jump input_image
@@ -2203,9 +2170,11 @@ label input_image:
 label input_rotate:
     $ show_input_frame = True
     $ show_rotate_input = True
+    $ char_entered = True
     $ number_input = ""
 
-    call screen image_move
+    if not renpy.in_rollback():
+        call screen image_move
 
     $ show_input_frame = False
     $ show_rotate_input = False
@@ -2221,16 +2190,18 @@ label input_rotate:
         $ show_input_frame = False
         $ show_invalid_int_message = True
 
-    call program_queue
+    jump program_queue
 
 
 label input_zoom:
     $ show_input_frame = True
     $ show_zoom_input = True
+    $ char_entered = True
     $ float_input = ""
     $ float_value = 0.01
 
-    call screen image_move
+    if not renpy.rollback():
+        call screen image_move
 
     $ show_input_frame = False
     $ show_zoom_input = False
@@ -2251,16 +2222,18 @@ label input_zoom:
         $ show_invalid_float_message = True
 
     $ zoom_range = float_value
-    call program_queue
+    jump program_queue
 
 
 label input_xalign:
     $ show_input_frame = True
     $ show_xalign_input = True
+    $ char_entered = True
     $ float_input = ""
     $ float_value = 0.01
 
-    call screen image_move
+    if not renpy.in_rollback():
+        call screen image_move
 
     $ show_input_frame = False
     $ show_xalign_input = False
@@ -2281,16 +2254,18 @@ label input_xalign:
         $ show_invalid_float_message = True
 
     $ xalign_range = float_value
-    call program_queue
+    jump program_queue
 
 
 label input_yalign:
     $ show_input_frame = True
     $ show_yalign_input = True
+    $ char_entered = True
     $ float_input = ""
     $ float_value = 0.01
 
-    call screen image_move
+    if not renpy.in_rollback():
+        call screen image_move
 
     $ show_input_frame = False
     $ show_yalign_input = False
@@ -2311,17 +2286,19 @@ label input_yalign:
         $ show_invalid_float_message = True
 
     $ yalign_range = float_value
-    call program_queue
+    jump program_queue
 
 
 label input_image_size:
     $ number_input = ""
+    $ char_entered = True
 
     if not image_width_entered:
         $ image_width_entered = True
         $ show_input_frame = True
 
-        call screen image_move
+        if not renpy.in_rollback():
+            call screen image_move
 
         if number_input == "":
             $ number_input = "1920"
@@ -2332,7 +2309,8 @@ label input_image_size:
         $ image_height_entered = True
         $ show_input_frame = True
 
-        call screen image_move
+        if not renpy.in_rollback():
+            call screen image_move
 
         if number_input == "":
             $ number_input = "1080"
@@ -2343,7 +2321,8 @@ label input_image_size:
         $ image_by_pi_entered = True
         $ show_input_frame = True
 
-        call screen image_move
+        if not renpy.in_rollback():
+            call screen image_move
 
         if number_input == "":
             $ number_input = "4"
@@ -2354,7 +2333,7 @@ label input_image_size:
         $ update_layers_max()
         $ return_button = True
 
-        call program_queue
+    jump program_queue
 
 
 label get_image_info:
@@ -2370,7 +2349,7 @@ label get_image_info:
 
     $ show_current_image_parameters = True
 
-    call program_queue
+    jump program_queue
 
 
 label delete_image_move:
@@ -2392,8 +2371,6 @@ label delete_image_move:
         update_layers_max()
     $ delete_query = False
     $ move_into_screen = False
-    $ renpy.pause(0.7, hard = True)
-    $ renpy.load("main_game_save_dev")
 
 
 label delete_layers_only:
@@ -2416,6 +2393,7 @@ label delete_layers_only:
         delete_query = False
         stop_loading_layers = False
         update_layers_max()
+
     jump program_queue
 
 
@@ -3680,7 +3658,7 @@ label search_projects:
     $ search_projects_menu_opened = False
     show screen search_projects_menu
 
-    $ START_DIR = "/home/daniel/Daten/RenPy/--------------------------> renpy-8.5.3-sdk"
+    $ START_DIR = "/home/daniel/Daten/RenPy/renpy-8.5.3-sdk"
 
     python:
         current_directory = os.path.abspath(config.gamedir)

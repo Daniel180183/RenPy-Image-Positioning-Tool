@@ -3,19 +3,19 @@ init python:
     config.overlay_screens.append("image_move_hidden")
 
 
-label main_menu:
-    call screen main_menu
-    return
+# label main_menu:
+#     call screen main_menu
+#     return
 
 
 label start:
 
-    if start_search_menu:
-        scene ingame_background
-        call screen search_projects_menu
-
-    if start_image_pos_tool:
-        scene ingame_background
+    # if start_search_menu:
+    #     scene ingame_background
+    #     call screen search_projects_menu
+    #
+    # if start_image_pos_tool:
+    scene ingame_background
 
     # Here begins your game script.
 
