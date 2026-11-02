@@ -337,11 +337,12 @@ default hover_color = "#d3f8cc"
 default first_pm_button_color = "#80d76e"
 default second_pm_button_color = "#80e46b"
 default image_move_menu_slide_down = False
-default hide_current_menu = False
 default move_into_screen = False
 default return_button = False
 default current_layer = None
 default char_entered = False
+default message_query = False
+default error_save_pos_file = False
 
 default move_yoffset = 0.0
 
@@ -1004,15 +1005,6 @@ screen image_move():
                 SetVariable("move_into_screen", True)
             ]
 
-    if not image_move_menu_slide_down:
-        timer 0.5 repeat False action Return()
-
-    if hide_current_menu:
-        timer 0.5 repeat False action [
-            Hide("image_move"),
-            Show("return_move_menu", Dissolve(0.2)),
-        ]
-
     frame:
         foreground None
         background None
@@ -1042,8 +1034,7 @@ screen image_move():
         # if (image_move_menu_startet):
         #     at move_down
 
-        # if (not move_into_screen or
-        #     hide_current_menu):
+        # if (not move_into_screen:
         #     if not slide_image_move_menu_right:
         #         xalign 0.0
         #
@@ -1055,15 +1046,18 @@ screen image_move():
         if (image_move_menu_slide_down
             and not show_input_frame
             and not return_button
-            and not char_entered):
+            and not char_entered
+            and not message_query):
             at move_down
 
-        if (not image_move_menu_slide_down
-            or hide_current_menu):
+        if not image_move_menu_slide_down:
             at move_up
             timer 0.5 repeat False action [
                 SetVariable("return_button", False),
-                SetVariable("char_entered", False)
+                SetVariable("char_entered", False),
+                SetVariable("message_query", False),
+                SetVariable("config.rollback_enabled", True),
+                Return()
                 ]
 
         frame:
@@ -1618,8 +1612,7 @@ screen image_move():
                             and not show_current_image_parameters
                             and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Continue game" action [
-                                SetVariable("config.rollback_enabled", True),
-                                Return()
+                                SetVariable("image_move_menu_slide_down", False)
                             ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
                         if (show_input_frame
@@ -1644,9 +1637,18 @@ screen image_move():
                             and not show_invalid_int_message):
                             textbutton "{color=#4f7649}Save layer data" action [
                                 SetVariable("delete_mode", "continue"),
-                                SetVariable("show_saving", True),
-                                Jump("anim_progress_bar")
+                                SetVariable("show_saving", True)
                             ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 background second_button_color hover_background hover_color
+
+                        if show_saving:
+                            timer 0.01 repeat True action [
+                                If(progress_bar < 100,
+                                   true = SetVariable("progress_bar", progress_bar + 1),
+                                   false = [SetVariable("show_saving", False),
+                                            SetVariable("progress_bar", 0),
+                                            Jump("save_layer_data")]
+                                )
+                            ]
 
                         if (layer == -1
                             or show_input_frame
@@ -1671,15 +1673,15 @@ screen image_move():
                             frame:
                                 xalign 0.5
                                 yalign 0.5
-                                padding (3, 6)
+                                padding (3, 4)
                                 fixed:
                                     xsize 416
-                                    ysize 16
+                                    ysize 12
                                     bar:
                                         value progress_bar
                                         range 100
                                         xfill True
-                                        ysize 16
+                                        ysize 12
                                         xalign 0.5
                                         yalign 0.5
                                         left_bar Solid("#cb1e1e")
@@ -1715,6 +1717,17 @@ screen image_move():
                                 SetVariable("delete_query_data_pos_file", True)
                             ] style "ipt_button" text_style "ipt_button_text" xsize 422 ysize 20 hover_background hover_color
 
+                        if show_deleting:
+                            timer 0.01 repeat True action [
+                                If(progress_bar < 100,
+                                   true = SetVariable("progress_bar", progress_bar + 1),
+                                   false = [
+                                            SetVariable("progress_bar", 0),
+                                            Jump("delete_layer_data")
+                                    ]
+                                )
+                            ]
+
                         if (show_input_frame
                             or image_loading_error
                             or delete_query
@@ -1738,15 +1751,15 @@ screen image_move():
                             frame:
                                 xalign 0.5
                                 yalign 0.5
-                                padding (3, 6)
+                                padding (3, 4)
                                 fixed:
                                     xsize 416
-                                    ysize 16
+                                    ysize 12
                                     bar:
                                         value progress_bar
                                         range 100
-                                        xsize 416
-                                        ysize 16
+                                        xfill True
+                                        ysize 12
                                         xalign 0.5
                                         yalign 0.5
                                         left_bar Solid("#cb1e1e")
@@ -1808,7 +1821,6 @@ screen image_move():
 
                 if show_input_frame:
                     timer 0.01 action Function(resize_image_move, 0.00)
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
                     frame:
                         background Solid("#84ec6e")
                         xsize 442
@@ -1874,7 +1886,6 @@ screen image_move():
                                     or image_height_entered):
                                         id "number_input"
                                         value VariableInputValue("number_input", returnable = True)
-
                                         allow "0123456789"
                                         length 4
                                         size 16
@@ -1884,7 +1895,6 @@ screen image_move():
                                 if show_rotate_input:
                                     id "number_input"
                                     value VariableInputValue("number_input", returnable = True)
-
                                     allow "0123456789"
                                     length 3
                                     size 16
@@ -1894,7 +1904,6 @@ screen image_move():
                                 if image_by_pi_entered:
                                     id "number_input"
                                     value VariableInputValue("number_input", returnable = True)
-
                                     allow "0123456789"
                                     length 2
                                     size 16
@@ -1907,7 +1916,6 @@ screen image_move():
                                         or show_yalign_input)):
                                         id "float_input"
                                         value VariableInputValue("float_input", returnable = True)
-
                                         allow "0123456789."
                                         length 4
                                         exclude "{}"
@@ -1916,7 +1924,7 @@ screen image_move():
                                         style("ipt_text")
 
                 if image_loading_error:
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
+                    timer 0.01 action SetVariable("message_query", True)
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
                         background Solid("#84ec6e")
@@ -1932,7 +1940,7 @@ screen image_move():
                         ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if delete_query:
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
+                    timer 0.01 action SetVariable("message_query", True)
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
                         background Solid("#84ec6e")
@@ -1972,7 +1980,7 @@ screen image_move():
                                 ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if delete_query_data_pos_file:
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
+                    timer 0.01 action SetVariable("message_query", True)
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
                         background Solid("#84ec6e")
@@ -1995,8 +2003,7 @@ screen image_move():
 
                                 textbutton "{color=#cb1e1e}Yes" xsize 50 text_size 16 action [
                                 SetVariable("delete_query_data_pos_file", False),
-                                SetVariable("show_deleting", True),
-                                Jump("anim_progress_bar")
+                                SetVariable("show_deleting", True)
                                 ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                                 textbutton "{color=#238626}No" xsize 50 text_size 16 action [
@@ -2005,7 +2012,7 @@ screen image_move():
                                 ] style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if show_stop_message:
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
+                    timer 0.01 action SetVariable("message_query", True)
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
                         background Solid("#84ec6e")
@@ -2027,7 +2034,7 @@ screen image_move():
                         ] xalign 0.5 yalign 0.5 text_size 16 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if show_invalid_float_message:
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
+                    timer 0.01 action SetVariable("message_query", True)
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
                         background Solid("#84ec6e")
@@ -2048,7 +2055,7 @@ screen image_move():
                         ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if show_invalid_int_message:
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
+                    timer 0.01 action SetVariable("message_query", True)
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
                         background Solid("#84ec6e")
@@ -2069,7 +2076,7 @@ screen image_move():
                             ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
                 if show_current_image_parameters:
-                    textbutton "" style "ipt_button" text_style "ipt_button_text" xsize 442 background second_button_color
+                    timer 0.01 action SetVariable("message_query", True)
                     timer 0.01 action Function(resize_image_move, 0.00)
                     frame:
                         background Solid("#84ec6e")
@@ -2097,11 +2104,75 @@ screen image_move():
                         SetVariable("show_current_image_parameters", False)
                         ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
 
+                if error_save_pos_file:
+                    timer 0.01 action SetVariable("message_query", True)
+                    timer 0.01 action Function(resize_image_move, 0.00)
+                    frame:
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 442
+                        ysize 150
+                        xalign 0.5
+                        yalign 0.5
+
+                        vbox:
+                            xalign 0.5
+                            ypos 15
+                            label "{color=#cb1e1e}" xsize 416  text_style "ipt_button_text"
+                            label "{color=#cb1e1e}" xsize 416  text_style "ipt_button_text"
+
+                        textbutton "Return" action [
+                            SetVariable("", False)
+                            ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
+
+                if :
+                    timer 0.01 action SetVariable("message_query", True)
+                    timer 0.01 action Function(resize_image_move, 0.00)
+                    frame:
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 442
+                        ysize 150
+                        xalign 0.5
+                        yalign 0.5
+
+                        vbox:
+                            xalign 0.5
+                            ypos 15
+                            label "{color=#cb1e1e}" xsize 416  text_style "ipt_button_text"
+                            label "{color=#cb1e1e}" xsize 416  text_style "ipt_button_text"
+
+                        textbutton "Return" action [
+                            SetVariable("", False)
+                            ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
+
+                if :
+                    timer 0.01 action SetVariable("message_query", True)
+                    timer 0.01 action Function(resize_image_move, 0.00)
+                    frame:
+                        background Solid("#84ec6e")
+                        padding(4, 2, 4, 2)
+                        xsize 442
+                        ysize 150
+                        xalign 0.5
+                        yalign 0.5
+
+                        vbox:
+                            xalign 0.5
+                            ypos 15
+                            label "{color=#cb1e1e}" xsize 416  text_style "ipt_button_text"
+                            label "{color=#cb1e1e}" xsize 416  text_style "ipt_button_text"
+
+                        textbutton "Return" action [
+                            SetVariable("", False)
+                            ] xalign 1.0 yalign 1.0 style "ipt_button" text_style "ipt_button_text" hover_background hover_color
+
 
 label program_queue:
     window hide
 
     if not renpy.in_rollback():
+        $ renpy.block_rollback()
         $ config.rollback_enabled = False
         call screen image_move
 
@@ -2110,17 +2181,6 @@ label program_queue:
     $ char_entered = False
     $ ipt_show_hidden_button = True
     return
-
-
-label anim_progress_bar:
-    while progress_bar < 100:
-        $ progress_bar += 1
-        $ renpy.pause(0.001, hard = True)
-    $ progress_bar = 0
-    if show_saving:
-        jump save_layer_data
-    if show_deleting:
-        jump delete_layer_data
 
 
 label list_image_files:
@@ -2368,9 +2428,12 @@ label delete_image_move:
         image_move_active = False
         layers_simultan = False
         show_deleting = False
+        image_move_menu_slide_down = False
         update_layers_max()
-    $ delete_query = False
-    $ move_into_screen = False
+        delete_query = False
+        move_into_screen = False
+
+    jump program_queue
 
 
 label delete_layers_only:
@@ -2693,62 +2756,91 @@ label restart_layer_counter:
     jump program_queue
 
 
+python:
+    def layer_positions_path():
+        return os.path.join(config.savedir, "layer_positions.txt")
+
+
 label save_layer_data:
     $ persistent.data_position_file = True
     $ show_saving = False
 
     python:
-        current_directory = os.getcwd()
-        project_name = os.path.basename(config.basedir)
-
-        file_path = os.path.join(
-            current_directory,
-            project_name,
-            "game",
-            "scripts",
-            "layer_positions.txt"
-        )
-
         get_date_time = show_date_time()
 
-        with open(file_path, "a") as file:
-            file.write("\n\n{b}________________________________________________{/b}")
-            file.write("\n\n{b}Layer data on: {/b}" + "{b}" + get_date_time + "{/b}")
+        try:
+            with open(layer_positions_path(), "a", encoding="utf-8") as f:
+                f.write("\n\n{b}________________________________________________{/b}")
+                f.write("\n\n{b}Layer data on: {/b}" + "{b}" + get_date_time + "{/b}")
 
-            for layer, current_layer in enumerate(layer_slots):
-                if current_layer.active:
-                    file.write("\n\n{b}Layer " + str(layer) + "{/b}")
-                    file.write("\nPath and filename: " + str(current_layer.image))
-                    file.write("\nXZoom: " + str(current_layer.xzoom))
-                    file.write("\nYZoom: " + str(current_layer.yzoom))
-                    file.write("\nRotate: " + str(current_layer.rotate))
-                    file.write("\nXalign: " + str(current_layer.xalign))
-                    file.write("\nYalign: " + str(current_layer.yalign))
-                    file.write("\nHorizontal Flip: " + str(current_layer.h_flip))
-                    file.write("\nVertical Flip: " + str(current_layer.v_flip) + "\n")
+                for layer, current_layer in enumerate(layer_slots):
+                    if current_layer.active:
+                        f.write("\n\n{b}Layer " + str(layer) + "{/b}")
+                        f.write("\nPath and filename: " + str(current_layer.image))
+                        f.write("\nXZoom: " + str(current_layer.xzoom))
+                        f.write("\nYZoom: " + str(current_layer.yzoom))
+                        f.write("\nRotate: " + str(current_layer.rotate))
+                        f.write("\nXalign: " + str(current_layer.xalign))
+                        f.write("\nYalign: " + str(current_layer.yalign))
+                        f.write("\nHorizontal Flip: " + str(current_layer.h_flip))
+                        f.write("\nVertical Flip: " + str(current_layer.v_flip) + "\n")
+
+        except Exception as e:
+            error_save_pos_file = True
 
     jump program_queue
 
+    #     get_date_time = show_date_time()
+    #
+    #     with open(file_path, "a") as file:
+    #         file.write("\n\n{b}________________________________________________{/b}")
+    #         file.write("\n\n{b}Layer data on: {/b}" + "{b}" + get_date_time + "{/b}")
+    #
+    #         for layer, current_layer in enumerate(layer_slots):
+    #             if current_layer.active:
+    #                 file.write("\n\n{b}Layer " + str(layer) + "{/b}")
+    #                 file.write("\nPath and filename: " + str(current_layer.image))
+    #                 file.write("\nXZoom: " + str(current_layer.xzoom))
+    #                 file.write("\nYZoom: " + str(current_layer.yzoom))
+    #                 file.write("\nRotate: " + str(current_layer.rotate))
+    #                 file.write("\nXalign: " + str(current_layer.xalign))
+    #                 file.write("\nYalign: " + str(current_layer.yalign))
+    #                 file.write("\nHorizontal Flip: " + str(current_layer.h_flip))
+    #                 file.write("\nVertical Flip: " + str(current_layer.v_flip) + "\n")
+    #
+    # jump program_queue
+
 
 label show_layer_pos_txt:
-    python:
-        file_path = "layer_positions.txt"
-    $ text = renpy.file(file_path).read().decode("utf-8")
+#     python:
+#         current_directory = os.getcwd()
+#         project_name = os.path.basename(config.basedir)
+#
+#         file_path = os.path.join(
+#             "/",
+#             current_directory,
+#             project_name,
+#             "game",
+#             "scripts",
+#             "layer_positions.txt")
 
-    show screen show_data_pos_file(text) with Dissolve(0.2)
 
-    $ renpy.pause(hard=True)
+    $ text = renpy.open_file("scripts/layer_positions.txt", encoding="utf-8").read()
+
+    call screen show_data_pos_file(text) with Dissolve(0.2)
+
+    jump program_queue
 
 
 label delete_layer_data:
     $ persistent.data_position_file = False
     $ show_deleting = False
     python:
-        project_name = os.path.basename(config.basedir)
-        file_path = os.path.join(project_name, "game", 'layer_positions.txt')
+        file_path = os.path.join("scripts/layer_positions.txt")
         file = open(file_path, "w")
         file.write("")
         file.close()
+
     jump program_queue
 
 

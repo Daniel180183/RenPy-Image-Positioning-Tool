@@ -1,2 +1,0 @@
-/home/daniel/Daten/RenPy/--------------------------> renpy-8.5.3-sdk/image_mm/game/script.rpy
-/home/daniel/Daten/RenPy/--------------------------> renpy-8.5.3-sdk/tutorial/game/script.rpy
