@@ -1,15 +1,16 @@
+
+# Ren'Py: automatisch erzeugte Dateien
 *.rpyc
+*.rpymc
 __pycache__/
-audio/
 cache/
-Fonts/
-gui/
-images/
 saves/
-tl/
-.DS_Store
-Thumbs.db
+
+# Protokolle und Fehlermeldungen
 errors.txt
 traceback.txt
 log.txt
 
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
